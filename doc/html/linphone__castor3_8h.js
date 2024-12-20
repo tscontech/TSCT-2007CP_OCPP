@@ -1,0 +1,38 @@
+var linphone__castor3_8h =
+[
+    [ "LINPHONE_CASTOR3_MAX_IP_COUNT", "group__linphone__castor3.html#gab6f47855a3f5f9ca056115d5288fe25b", null ],
+    [ "PROMPT_MAX_LEN", "group__linphone__castor3.html#ga95a116ac2056bd661209f9a64ae09168", null ],
+    [ "LinphoneCastor3RegistrationState", "group__linphone__castor3.html#ga89601361361fc90039a21694f0f8fda7", null ],
+    [ "_LinphoneCastor3RegistrationState", "group__linphone__castor3.html#ga21773b7bf49c9c71200735543a20d719", [
+      [ "Linphone_RegistrationNone", "group__linphone__castor3.html#gga21773b7bf49c9c71200735543a20d719a10ad980e1bbc6d7f5e04e9e91379d2a0", null ],
+      [ "Linphone_RegistrationProgress", "group__linphone__castor3.html#gga21773b7bf49c9c71200735543a20d719ab3e48a0bca2e199a0637e149abb9be6b", null ],
+      [ "Linphone_RegistrationOk", "group__linphone__castor3.html#gga21773b7bf49c9c71200735543a20d719a1ef6617fa448463a907cc72c397b4d56", null ],
+      [ "Linphone_RegistrationCleared", "group__linphone__castor3.html#gga21773b7bf49c9c71200735543a20d719a6e8dc6f38ad0cbc4b5e71d9eaec741f4", null ],
+      [ "Linphone_RegistrationFailed", "group__linphone__castor3.html#gga21773b7bf49c9c71200735543a20d719a8c48231a04712ea4fbdc0274a50745fc", null ]
+    ] ],
+    [ "linphonec_main", "group__linphone__castor3.html#ga6cf9cee2d481837a5bdc7ebb3f53feaf", null ],
+    [ "linphonec_call_allow_call_waiting_callback", "group__linphone__castor3.html#ga41d7915152c795024d39155dbf43b6c4", null ],
+    [ "linphonec_call_camera_connect_error_callback", "group__linphone__castor3.html#gaaa58ddd38d327050b67a648cb1398aa8", null ],
+    [ "linphonec_call_capture_record_status_callback", "group__linphone__castor3.html#gaf4759ef346c6ef46a8a1515a0501a29b", null ],
+    [ "linphonec_call_connected_notify_callback", "group__linphone__castor3.html#ga83a52b925269ef1897fe0476044f6262", null ],
+    [ "linphonec_call_end_notify_callback", "group__linphone__castor3.html#gafb4d47d36107847819686c0805a8b34f", null ],
+    [ "linphonec_call_error_notify_callback", "group__linphone__castor3.html#ga9964de22799cc5133b66f48930fa57e5", null ],
+    [ "linphonec_call_first_snapshot_callback", "group__linphone__castor3.html#ga1673d07448f58e5a35281451de20eb17", null ],
+    [ "linphonec_call_get_addr_callback", "group__linphone__castor3.html#gae9fe6947105006e76cb338f58b4ebc1b", null ],
+    [ "linphonec_call_imcoming_received_notify_callback", "group__linphone__castor3.html#ga8c1e43e5b3cdb6025740e9a7fd4448c9", null ],
+    [ "linphonec_call_ipcam_record_status_callback", "group__linphone__castor3.html#ga4de1f6ee05d0bbd82c282034cf98c393", null ],
+    [ "linphonec_call_ipcam_streaming_status_callback", "group__linphone__castor3.html#gab59b232d47b22fd3f72ce6d06eefb05b", null ],
+    [ "linphonec_call_is_allowing_spotted_callback", "group__linphone__castor3.html#ga5bbc26f97b71eca74a1b6ef1f02a7dd4", null ],
+    [ "linphonec_call_is_calling_callback", "group__linphone__castor3.html#ga47bfc095620b8d29e420b40fb3e809b8", null ],
+    [ "linphonec_call_is_camera_viewing_callback", "group__linphone__castor3.html#ga9cbbe0efdb4e79d2b7f385913a488ce4", null ],
+    [ "linphonec_call_log_add_callback", "group__linphone__castor3.html#ga3ceb23fe49a24fa98fe500e1099679cc", null ],
+    [ "linphonec_call_on_do_not_disturb_callback", "group__linphone__castor3.html#gaa83693351147989f1a1bd89c01eb998c", null ],
+    [ "linphonec_call_paused_notify_callback", "group__linphone__castor3.html#gad2c740e870eb56ddd5c027ea18943c00", null ],
+    [ "linphonec_call_stop_audio_play_callback", "group__linphone__castor3.html#ga9346f1b0a61ed10d5a11742abbace103", null ],
+    [ "linphonec_call_stop_video_play_callback", "group__linphone__castor3.html#gae3fb8e968fde34c9e4078d76d85895be", null ],
+    [ "linphonec_camera_enabled", "group__linphone__castor3.html#gaae42ecb756e515af3523fed241f1e0ce", null ],
+    [ "linphonec_initialized_notify_callback", "group__linphone__castor3.html#gab46390f1913ec4654afc65a9f79083fd", null ],
+    [ "linphonec_new_log_notify_callback", "group__linphone__castor3.html#ga25adf5c41b3f538807d93456070d609c", null ],
+    [ "linphoneCastor3", "group__linphone__castor3.html#gae7aae353cd70d6d5afce07404b356b21", null ],
+    [ "lp_config_sync_notify_callback", "group__linphone__castor3.html#gab6d573ea4cbe7eacc41b974a3d31ccb7", null ]
+];

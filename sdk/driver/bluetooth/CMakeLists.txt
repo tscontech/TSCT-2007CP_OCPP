@@ -1,0 +1,5 @@
+if (DEFINED CFG_RTL8723BLE)
+	add_subdirectory(rtl8723ble)
+elseif(DEFINED CFG_AP6212BLE OR DEFINED CFG_AP6256BLE OR DEFINED CFG_AP6236BLE)
+	add_subdirectory(ampak)
+endif()

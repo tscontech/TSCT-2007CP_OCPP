@@ -1,0 +1,28 @@
+itp_standard_saradc.c
+ 1. SARADC init, convert 부분 주석처리
+
+22.06.14
+
+ 1) CP Level Debug Log 변경
+
+ 2) ADC 종료 추가 => CP Relay On/Off 시 ADC On/Off
+
+ 3) B type 로직 생성
+
+22.07.20
+
+ 1) DHCP Off, TSCT_NetworkReset 함수 주석, FtpFwUpdate_func 주석, fcntl( gSockfd[ch], F_SETFL, O_NONBLOCK) 주석
+
+ 2) Default 카드인식 모드
+
+22.07.21
+	1) init_Data(); 호출 위치 변경 -> ConfigInit(); 다음
+
+	2) config.c 서버 정보 변경
+
+	3) Server Contact 확인
+
+22.07.22
+	1) tsctcfg.h 수정
+
+	2) 관리자모드 UI 수정

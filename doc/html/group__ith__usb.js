@@ -1,0 +1,47 @@
+var group__ith__usb =
+[
+    [ "USB_DEVICE_INFO", "struct_u_s_b___d_e_v_i_c_e___i_n_f_o.html", [
+      [ "ctxt", "struct_u_s_b___d_e_v_i_c_e___i_n_f_o.html#a20aeb9889c7d23b96f977ed4010ca922", null ],
+      [ "type", "struct_u_s_b___d_e_v_i_c_e___i_n_f_o.html#ac765329451135abec74c45e1897abf26", null ]
+    ] ],
+    [ "USB_DEVICE_CONNECT", "group__ith__usb.html#gacbbbfffab3843cbcf0f58d6ae63e8b23", null ],
+    [ "USB_DEVICE_DEMOD", "group__ith__usb.html#ga5552cf9bfdc28c07d9cfbec1e38dc697", null ],
+    [ "USB_DEVICE_DISCONNECT", "group__ith__usb.html#ga59aba6bd3de77f32aed77fd13ad250b6", null ],
+    [ "USB_DEVICE_ECM", "group__ith__usb.html#ga3d41428fb9052da80fa19e031ca9e734", null ],
+    [ "USB_DEVICE_KBD", "group__ith__usb.html#ga4e6148705f56e6988da6ed069a0c6141", null ],
+    [ "USB_DEVICE_MOUSE", "group__ith__usb.html#gafd4349993429f82a93c3cd0156e0f260", null ],
+    [ "USB_DEVICE_MSC", "group__ith__usb.html#gaae906b184f077bfb03d97b186667de41", null ],
+    [ "USB_DEVICE_OPTION", "group__ith__usb.html#gaa689d2644bf7e6f61dbe1c6170e3f9c3", null ],
+    [ "USB_DEVICE_SERIAL", "group__ith__usb.html#ga62bc3dc233b4dce4f9378a3eeec77da1", null ],
+    [ "USB_DEVICE_UAS", "group__ith__usb.html#ga9d6015c308121e72783e45dd3eb7e3ed", null ],
+    [ "USB_DEVICE_UVC", "group__ith__usb.html#ga5b901d0f0dc998db9517067ead51a8f9", null ],
+    [ "USB_DEVICE_WIFI", "group__ith__usb.html#gab00070207a64d9a89df83d3b91362221", null ],
+    [ "USB_MAX_INTERFACE", "group__ith__usb.html#ga8e3a0193de889abd150e47dcd225f443", [
+      [ "USB0", "group__ith__usb.html#ggadf764cbdea00d65edcd07bb9953ad2b7a65f1eb743a1f569509a319dcd334471e", null ],
+      [ "USB1", "group__ith__usb.html#ggadf764cbdea00d65edcd07bb9953ad2b7a6dd055d392de5ddb40912e3f9adbc4f4", null ],
+      [ "USBEX_SPEED_UNKNOWN", "group__ith__usb.html#gga99fb83031ce9923c84392b4e92f956b5a5323f67c25f33b6dcb6d82997fc4976e", null ],
+      [ "USBEX_SPEED_LOW", "group__ith__usb.html#gga99fb83031ce9923c84392b4e92f956b5a317cb23a2d7a949c0cdc1860d2d91d79", null ],
+      [ "USBEX_SPEED_FULL", "group__ith__usb.html#gga99fb83031ce9923c84392b4e92f956b5aa22ec1f45fcd0e94c219ae4a821b7167", null ],
+      [ "USBEX_SPEED_HIGH", "group__ith__usb.html#gga99fb83031ce9923c84392b4e92f956b5ae4438f62022bc059222283c44ea9bc11", null ],
+      [ "USB_DEVICE_TYPE_MSC", "group__ith__usb.html#ggabc6126af1d45847bc59afa0aa3216b04a29a271fb2a383c91b36284a12280c620", null ],
+      [ "USB_DEVICE_TYPE_UAS", "group__ith__usb.html#ggabc6126af1d45847bc59afa0aa3216b04a797b3bc342f0dfa205439c5245a342c5", null ],
+      [ "USB_DEVICE_TYPE_WIFI", "group__ith__usb.html#ggabc6126af1d45847bc59afa0aa3216b04a27c04ab038b5078929cf33a4c96bdc32", null ],
+      [ "USB_DEVICE_TYPE_KBD", "group__ith__usb.html#ggabc6126af1d45847bc59afa0aa3216b04ae4010ba1f6515aee33c25be0709fe4a4", null ],
+      [ "USB_DEVICE_TYPE_MOUSE", "group__ith__usb.html#ggabc6126af1d45847bc59afa0aa3216b04a1181e5460887b5195a587ceffe7b757e", null ],
+      [ "USB_DEVICE_TYPE_DEMOD", "group__ith__usb.html#ggabc6126af1d45847bc59afa0aa3216b04a455925286732fd546ab3db6d55908263", null ],
+      [ "USB_DEVICE_TYPE_UVC", "group__ith__usb.html#ggabc6126af1d45847bc59afa0aa3216b04ab93b8698ad49bbf84f32225a1475b47a", null ],
+      [ "USB_DEVICE_TYPE_ECM", "group__ith__usb.html#ggabc6126af1d45847bc59afa0aa3216b04a9d04e35473980f52d3954fc0894be873", null ],
+      [ "USB_DEVICE_TYPE_SERIAL", "group__ith__usb.html#ggabc6126af1d45847bc59afa0aa3216b04a1043f7dce4403b48c9270b1e65b4ddf8", null ],
+      [ "USB_DEVICE_TYPE_OPTION", "group__ith__usb.html#ggabc6126af1d45847bc59afa0aa3216b04a77a93c74bf69108fb2c773ba8841d4f9", null ],
+      [ "USB_DEVICE_TYPE_NOT_MATCH", "group__ith__usb.html#ggabc6126af1d45847bc59afa0aa3216b04ae07d7552eba7639a3fa7fe08bbe5adbc", null ],
+      [ "USB_DEVICE_STATE_NOCHAGNE", "group__ith__usb.html#ggadc29c2ff13d900c2f185ee95427fb06ca3cbbcde7b9a01a21f462c98275bf5095", null ],
+      [ "USB_DEVICE_STATE_CONNECT", "group__ith__usb.html#ggadc29c2ff13d900c2f185ee95427fb06ca62e4dd718c0b230e01a75ca521bde648", null ],
+      [ "USB_DEVICE_STATE_DISCONNECT", "group__ith__usb.html#ggadc29c2ff13d900c2f185ee95427fb06ca14be09ff84946bd74f52c2980350b7de", null ]
+    ] ],
+    [ "iteUsbExIsPortConnect", "group__ith__usb.html#ga28701616e5106426af290417e50a1d2f", null ],
+    [ "mmpUsbExCheckDeviceState", "group__ith__usb.html#ga562eb575475045fd775a41894337c96a", null ],
+    [ "mmpUsbExGetSpeed", "group__ith__usb.html#ga3d87e2fa4543679e6ec2b7ba4ce6fb20", null ],
+    [ "mmpUsbExInitialize", "group__ith__usb.html#ga9033e74de14b4a798164455dc59be62c", null ],
+    [ "mmpUsbExUsb0IsOtg", "group__ith__usb.html#ga4f86becb9406cb5353883dd59f510f9a", null ],
+    [ "USBEX_ThreadFunc", "group__ith__usb.html#gaea2d7568ccb795071384ec9675d6ed9f", null ]
+];

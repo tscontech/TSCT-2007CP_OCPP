@@ -1,0 +1,58 @@
+var group__initializing =
+[
+    [ "_LinphoneVTable", "struct___linphone_v_table.html", [
+      [ "auth_info_requested", "struct___linphone_v_table.html#a970911bab52a225ec0ced9962ecb96c9", null ],
+      [ "buddy_info_updated", "struct___linphone_v_table.html#a4d4b558e84510ce257eb72d51d3b3c01", null ],
+      [ "call_encryption_changed", "struct___linphone_v_table.html#a077d0d38d37ba36d08c134b11264c895", null ],
+      [ "call_log_updated", "struct___linphone_v_table.html#a76516cbce9b09de37c0bf3ab763bd0a0", null ],
+      [ "call_state_changed", "struct___linphone_v_table.html#acfc72b46ffc9d5d435a6a2caf7c9f45e", null ],
+      [ "display_message", "struct___linphone_v_table.html#aa627b8956330c7dcf6ee391b51026581", null ],
+      [ "display_status", "struct___linphone_v_table.html#aa26c65cc043da5a81bc839f599e79ef1", null ],
+      [ "display_url", "struct___linphone_v_table.html#adccf5a8b8777c82f26286aaacf03d74d", null ],
+      [ "display_warning", "struct___linphone_v_table.html#a05c0a0abd67aab5e4e758eb205bb0d3b", null ],
+      [ "dtmf_received", "struct___linphone_v_table.html#a83a3cf613f2589a6a6c5dba1f58c38b2", null ],
+      [ "global_state_changed", "struct___linphone_v_table.html#af94607cea062a1e80c51d4900a444f8a", null ],
+      [ "new_subscription_request", "struct___linphone_v_table.html#a4fcd5e7a7585b3d7e12d6d4bbba753ca", null ],
+      [ "notify_presence_recv", "struct___linphone_v_table.html#af8cc441eedc8edecba713b9cc5f65474", null ],
+      [ "notify_recv", "struct___linphone_v_table.html#a54aec43ef4852a2fe8bbd7d4f0bdbf18", null ],
+      [ "refer_received", "struct___linphone_v_table.html#a4696a22dd8ffc0aa35cf71693cd0eafd", null ],
+      [ "registration_state_changed", "struct___linphone_v_table.html#ad9e8669c5b531b13895ea77898ade3ba", null ],
+      [ "show", "struct___linphone_v_table.html#a0a71412c0110bc34ec0f561ca0d18dcf", null ],
+      [ "text_received", "struct___linphone_v_table.html#a229afdf739e2965448fdd4643f8575dc", null ]
+    ] ],
+    [ "AuthInfoRequested", "group__initializing.html#gabc63a29e99948e1eb2a2e4ef48cdcfd8", null ],
+    [ "BuddyInfoUpdated", "group__initializing.html#ga0b0f8f7260151361b0084811997b81b2", null ],
+    [ "CallEncryptionChangedCb", "group__initializing.html#ga689d93fb945baebd58127f7960cc0834", null ],
+    [ "CallLogUpdated", "group__initializing.html#ga636172df171d91a296d02635e538fc70", null ],
+    [ "DisplayMessageCb", "group__initializing.html#ga590ccdb40b8d16694665c602d96bbb04", null ],
+    [ "DisplayStatusCb", "group__initializing.html#gadb12962cbe9eea75a799e6c0e72db0c5", null ],
+    [ "DisplayUrlCb", "group__initializing.html#gaf58e8eb2e357b047a47ef9ba5f2fa688", null ],
+    [ "DtmfReceived", "group__initializing.html#ga004faeaf46404b3327d154c415436367", null ],
+    [ "LinphoneCallStateCb", "group__initializing.html#ga8a0559b4c544c36763b1ae7934a8f238", null ],
+    [ "LinphoneCore", "group__initializing.html#gaa5cf635b82dd338e7ee2dd3599d05f0a", null ],
+    [ "LinphoneCoreCbFunc", "group__initializing.html#ga2d7c025fbbed5616b2146adba24b41d6", null ],
+    [ "LinphoneCoreVTable", "group__initializing.html#ga189ef1b7d6caff6493dfd8311ec3e378", null ],
+    [ "LinphoneGlobalState", "group__initializing.html#gae852b5b31d6d5e673de9d2c9b63aca7e", null ],
+    [ "LinphoneGlobalStateCb", "group__initializing.html#gac9af18ba8b25dbcd6574d22c8e79aec5", null ],
+    [ "LinphoneRegistrationStateCb", "group__initializing.html#ga22055a3f8c03df7cd95c8be8e7732f84", null ],
+    [ "NewSubscribtionRequestCb", "group__initializing.html#ga376f68799001be8a178934192a12b541", null ],
+    [ "NotifyPresenceReceivedCb", "group__initializing.html#gaa4ac533a9af474b3b803d0104663816b", null ],
+    [ "NotifyReceivedCb", "group__initializing.html#ga970c636f1f6f8378922566a23cdd9759", null ],
+    [ "ReferReceived", "group__initializing.html#ga1869804ed3892785de33a1ea3b153722", null ],
+    [ "ShowInterfaceCb", "group__initializing.html#gaad88479d6d34ac6ce8c4af5651b65823", null ],
+    [ "TextMessageReceived", "group__initializing.html#gac98b8d2e7bf4ef41e20c84cd43a9558a", null ],
+    [ "_LinphoneGlobalState", "group__initializing.html#ga3bca1685790c41a1729e88af318ffb1c", [
+      [ "LinphoneGlobalOff", "group__initializing.html#gga3bca1685790c41a1729e88af318ffb1ca2aaecf0f0faeac0c4f4244412c379e7e", null ],
+      [ "LinphoneGlobalStartup", "group__initializing.html#gga3bca1685790c41a1729e88af318ffb1ca49a0eb19bc708557f21ef4045184a462", null ],
+      [ "LinphoneGlobalOn", "group__initializing.html#gga3bca1685790c41a1729e88af318ffb1ca6b0be8b322525c48b5757e4d510ed83f", null ],
+      [ "LinphoneGlobalShutdown", "group__initializing.html#gga3bca1685790c41a1729e88af318ffb1ca31c7c67e9b100ffd14e7091c9ee3f31d", null ]
+    ] ],
+    [ "_LinphoneReason", "group__initializing.html#gaf7346e9b3a064155f3d5d3811d684fb2", [
+      [ "LinphoneReasonNone", "group__initializing.html#ggaf7346e9b3a064155f3d5d3811d684fb2af390378a48e0b30faeac92813c6a50ef", null ],
+      [ "LinphoneReasonNoResponse", "group__initializing.html#ggaf7346e9b3a064155f3d5d3811d684fb2ac71a4d9109f8eb8a9f5961109d505331", null ],
+      [ "LinphoneReasonBadCredentials", "group__initializing.html#ggaf7346e9b3a064155f3d5d3811d684fb2ad26546a581f2bfd58410f1f3d141666a", null ],
+      [ "LinphoneReasonDeclined", "group__initializing.html#ggaf7346e9b3a064155f3d5d3811d684fb2a442fce67ace6491eee2f4a94177f34c6", null ],
+      [ "LinphoneReasonNotFound", "group__initializing.html#ggaf7346e9b3a064155f3d5d3811d684fb2adf8c424e8f8e89efaf51e187c04ae7d5", null ]
+    ] ],
+    [ "linphone_global_state_to_string", "group__initializing.html#gaf4f24de18ae43d1a8f2812652b4aa656", null ]
+];

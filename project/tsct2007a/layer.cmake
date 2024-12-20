@@ -1,0 +1,31 @@
+add_executable(${CMAKE_PROJECT_NAME}
+    layer_logo.c
+    layer_standby.c
+    layer_main.c
+    layer_ch2.c
+    layer_auth_user.c
+    layer_rfidcard_auth.c
+    layer_cardnum.c
+    layer_remoteAuth.c
+    layer_connect.c
+    layer_cardwait.c
+    layer_charge.c
+    layer_ch2_finish.c
+    layer_disconnect.c
+    layer_thanks.c
+    layer_admin_login.c
+    layer_numkeypad.c
+    layer_dialog.c
+    layer_ipall.c
+    layer_admin_set_ip.c
+    layer_admin_set_charger.c
+    layer_admin_charger_test.c
+    layer_chargerset.c
+    layer_chargerset2.c
+    layer_Admintest.c
+    layer_FtpFwUpdate.c
+    layer_chargerlist.c
+    layer_qualif_test.c
+    layer_top.c
+)
+

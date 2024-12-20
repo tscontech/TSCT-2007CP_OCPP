@@ -1,0 +1,8 @@
+
+menuconfig BRCM_BT_ENABLED
+    bool "Broadcom BT"
+    default y
+
+    if BRCM_BT_ENABLED
+        source "$RTT_DIR/third_party/brcm_bt/pack/Kconfig"
+    endif

@@ -1,0 +1,95 @@
+var group__itc__stream =
+[
+    [ "ITCStreamTag", "struct_i_t_c_stream_tag.html", [
+      [ "Available", "struct_i_t_c_stream_tag.html#af8ed9cb8055e9031e912d3e4fcf44648", null ],
+      [ "Close", "struct_i_t_c_stream_tag.html#a287be88aa7491a123d1b9919f3bfe467", null ],
+      [ "eof", "struct_i_t_c_stream_tag.html#a15057793e4b0eb3b08c0b1797be8abc4", null ],
+      [ "Read", "struct_i_t_c_stream_tag.html#ade03747ec3cd8b19c605cb25ffb46759", null ],
+      [ "ReadLock", "struct_i_t_c_stream_tag.html#a4416d7136baf8ad6dd84aef2988b1afa", null ],
+      [ "ReadUnlock", "struct_i_t_c_stream_tag.html#a3a12ff7624f24d532733d1d4a698dadd", null ],
+      [ "Seek", "struct_i_t_c_stream_tag.html#ae0720bc3eab04071c0f71d47095cff68", null ],
+      [ "size", "struct_i_t_c_stream_tag.html#a439227feff9d7f55384e8780cfc2eb82", null ],
+      [ "Tell", "struct_i_t_c_stream_tag.html#a554bf37ef51f965af1a2cf4147c86a45", null ],
+      [ "Write", "struct_i_t_c_stream_tag.html#aec318281c78f36a61d5ecc44b3d1a21d", null ],
+      [ "WriteLock", "struct_i_t_c_stream_tag.html#ac9e41998d0ceb3899c5f97627038fa72", null ],
+      [ "WriteUnlock", "struct_i_t_c_stream_tag.html#a802efe5a4bfe0e9e8f76062cd19799f2", null ]
+    ] ],
+    [ "ITCArrayStream", "struct_i_t_c_array_stream.html", [
+      [ "array", "struct_i_t_c_array_stream.html#acd737e85d25ab968556c88499e397e23", null ],
+      [ "pos", "struct_i_t_c_array_stream.html#a1910d262855b71da353ed0d07a6c7823", null ],
+      [ "stream", "struct_i_t_c_array_stream.html#ae1f5b5b30a883227458fa66d22450702", null ]
+    ] ],
+    [ "ITCBufferStream", "struct_i_t_c_buffer_stream.html", [
+      [ "buf", "struct_i_t_c_buffer_stream.html#ac8ed9b9edf72a0bbde1ba01f0c67ef73", null ],
+      [ "mutex", "struct_i_t_c_buffer_stream.html#a4acff8232e4aec9cd5c6dc200ac55ef3", null ],
+      [ "readpos", "struct_i_t_c_buffer_stream.html#a6bf189efc18e1f2c352c562b85bf851f", null ],
+      [ "size", "struct_i_t_c_buffer_stream.html#a439227feff9d7f55384e8780cfc2eb82", null ],
+      [ "stream", "struct_i_t_c_buffer_stream.html#ae1f5b5b30a883227458fa66d22450702", null ],
+      [ "writepos", "struct_i_t_c_buffer_stream.html#a4f6eda090a2a7d35f235aa0db908ed15", null ]
+    ] ],
+    [ "ITCFileStream", "struct_i_t_c_file_stream.html", [
+      [ "file", "struct_i_t_c_file_stream.html#a702945180aa732857b380a007a7e2a21", null ],
+      [ "stream", "struct_i_t_c_file_stream.html#ae1f5b5b30a883227458fa66d22450702", null ]
+    ] ],
+    [ "ITCListNodeTag", "struct_i_t_c_list_node_tag.html", [
+      [ "data", "struct_i_t_c_list_node_tag.html#ac24cea2bfcc927fd29bc74d1086707d8", null ],
+      [ "next", "struct_i_t_c_list_node_tag.html#a884f74d28f6d1b085eac8d76f0d870b9", null ],
+      [ "prev", "struct_i_t_c_list_node_tag.html#a45c2f1c00f63922aa24ec5f4e4c6843f", null ]
+    ] ],
+    [ "ITCListStream", "struct_i_t_c_list_stream.html", [
+      [ "datasize", "struct_i_t_c_list_stream.html#a5c7949e884a8b9b3d1ab9f070267bf33", null ],
+      [ "readindex", "struct_i_t_c_list_stream.html#a09755123d45efcf244c0060e7ef81adb", null ],
+      [ "readnode", "struct_i_t_c_list_stream.html#a5cac25cdfcb256f3a573413ae28ffdcd", null ],
+      [ "readpos", "struct_i_t_c_list_stream.html#a6bf189efc18e1f2c352c562b85bf851f", null ],
+      [ "rootnode", "struct_i_t_c_list_stream.html#a18aea7a2bf9970fff64d89eab559706f", null ],
+      [ "stream", "struct_i_t_c_list_stream.html#ae1f5b5b30a883227458fa66d22450702", null ],
+      [ "writeindex", "struct_i_t_c_list_stream.html#af36782e8049a052cc0a134882f7eb561", null ],
+      [ "writenode", "struct_i_t_c_list_stream.html#aaa232c2f09603a92225358fecadcaeff", null ],
+      [ "writepos", "struct_i_t_c_list_stream.html#a4f6eda090a2a7d35f235aa0db908ed15", null ]
+    ] ],
+    [ "ITCBlockStream", "struct_i_t_c_block_stream.html", [
+      [ "blockSize", "struct_i_t_c_block_stream.html#a4aaa73e329d20f35039fa5cdd2e6f648", null ],
+      [ "cache", "struct_i_t_c_block_stream.html#a09171f00baf289510a560e2df6d20add", null ],
+      [ "cacheBlockCount", "struct_i_t_c_block_stream.html#a73dea109b9a981c15d0fa827f37c48f6", null ],
+      [ "cacheBlockPos", "struct_i_t_c_block_stream.html#ada1703afd7c9cd289bb9a59f2a8eaf7d", null ],
+      [ "cachePos", "struct_i_t_c_block_stream.html#abc4819beb0f59edcb27911b377ed7dd0", null ],
+      [ "cacheSize", "struct_i_t_c_block_stream.html#a21f5d4e833c67e26ce27afd3d9f23288", null ],
+      [ "fd", "struct_i_t_c_block_stream.html#a6f8059414f0228f0256115e024eeed4b", null ],
+      [ "gapSize", "struct_i_t_c_block_stream.html#ac6e42c404696f3df5e956d019f1c9f91", null ],
+      [ "offset", "struct_i_t_c_block_stream.html#aed7ea92f45bd273dde380a45ddced592", null ],
+      [ "pos", "struct_i_t_c_block_stream.html#a1910d262855b71da353ed0d07a6c7823", null ],
+      [ "start", "struct_i_t_c_block_stream.html#a37722a150250e2a5a98e5e0d11e53449", null ],
+      [ "stream", "struct_i_t_c_block_stream.html#ae1f5b5b30a883227458fa66d22450702", null ],
+      [ "write", "struct_i_t_c_block_stream.html#a5002a2848cc8cf19be18ac7616f685fd", null ]
+    ] ],
+    [ "itcStreamAvailable", "group__itc__stream.html#ga784d4372c946085dff0e3c8b6bd9572a", null ],
+    [ "itcStreamClose", "group__itc__stream.html#gac96a4fe6142df7f6cc69b179abe6abf7", null ],
+    [ "itcStreamRead", "group__itc__stream.html#gae1486612ba009dda0f0ac9a2ff7be6ef", null ],
+    [ "itcStreamReadLock", "group__itc__stream.html#ga68cf3e8f49dfc4e659b4531c20cde991", null ],
+    [ "itcStreamReadUnlock", "group__itc__stream.html#ga367915f6f431bc45fd88420f4c4e10ac", null ],
+    [ "itcStreamSeek", "group__itc__stream.html#gae2480c9d64e037a7f71ec74983c2172d", null ],
+    [ "itcStreamSetAvailable", "group__itc__stream.html#ga973815cc2219e3c86d092fe6ce25e842", null ],
+    [ "itcStreamSetClose", "group__itc__stream.html#ga2973a72cf6e71ce743287b559665f257", null ],
+    [ "itcStreamSetRead", "group__itc__stream.html#gaecc516b5164387c5d7d7bac19d3a023c", null ],
+    [ "itcStreamSetReadLock", "group__itc__stream.html#ga4e033e3825a20dc6070629b9eef12c2c", null ],
+    [ "itcStreamSetReadUnlock", "group__itc__stream.html#ga6605482985b350305fb0b911354f8c27", null ],
+    [ "itcStreamSetSeek", "group__itc__stream.html#ga11205ad2bb76ad6e559c0901abc90a64", null ],
+    [ "itcStreamSetTell", "group__itc__stream.html#ga2805d5a4a5db09c80672ad9ef985b5e0", null ],
+    [ "itcStreamSetWrite", "group__itc__stream.html#ga1f51379d41d9a302f785feaf6dd5eb1e", null ],
+    [ "itcStreamSetWriteLock", "group__itc__stream.html#ga0949bb8f97dd3af635c5b350331d6448", null ],
+    [ "itcStreamSetWriteUnlock", "group__itc__stream.html#ga3d44e4fbdd3831b8bcfff2b4d5d6c070", null ],
+    [ "itcStreamTell", "group__itc__stream.html#gaf04d51e5617302f5e4fd4a8b5ed7cb8c", null ],
+    [ "itcStreamWrite", "group__itc__stream.html#ga4275b08bcac270ec6223fadfefc098dc", null ],
+    [ "itcStreamWriteLock", "group__itc__stream.html#gac847dfe9bb53addad120bcb99ea4efb5", null ],
+    [ "itcStreamWriteUnlock", "group__itc__stream.html#gacb02605041156f0610acc6fc19895393", null ],
+    [ "ITCListNode", "group__itc__stream.html#gaa5305a27b56079c178206e9f0a8bd43c", null ],
+    [ "ITCStream", "group__itc__stream.html#ga31615e8b028efcb114ab75dd409ded25", null ],
+    [ "itcArrayStreamOpen", "group__itc__stream.html#ga2162e8016a87d9aa7cc6266164be0a50", null ],
+    [ "itcBlockStreamClose", "group__itc__stream.html#ga6d7e6babe1ed9a4d3ac1bf0b49b3a981", null ],
+    [ "itcBlockStreamOpen", "group__itc__stream.html#ga0c7a3ed687e789465619793942dffb6e", null ],
+    [ "itcBufferStreamOpen", "group__itc__stream.html#ga916b5a12cd9de9dd1bff4280ef025051", null ],
+    [ "itcFileStreamClose", "group__itc__stream.html#ga4d080ebb3d44cd6885dedfe9a623e67f", null ],
+    [ "itcFileStreamOpen", "group__itc__stream.html#ga6b0c501b9f16007565a0aae6cfcaa8bd", null ],
+    [ "itcListStreamOpen", "group__itc__stream.html#gab217f9d8915fd2d358e7b82f1a2aeb6c", null ],
+    [ "itcStreamOpen", "group__itc__stream.html#ga5a4e3b60bd624e27f1bb1305723d13dd", null ]
+];
