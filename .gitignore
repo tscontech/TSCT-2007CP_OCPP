@@ -1,0 +1,7 @@
+build/openrtos/tsct2007a
+build/openrtos/lib
+build/openrtos/arm_lite_codec
+build/openrtos/alt_cpu
+build/win32/lib
+build/linux/lib
+build/linux/arm_lite_codec
