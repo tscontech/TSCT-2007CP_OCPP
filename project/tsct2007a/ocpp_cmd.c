@@ -514,6 +514,7 @@ void DataProcCmd_HB(void)
 			TsctCheckNetTimeSet();
 		}
 	}
+	OCPP_cpSts_flg = true;
 }
 
 void MakeDataCmd_MeterVal(void)
@@ -1970,13 +1971,17 @@ void MakeDataCmd_DataTrans_j1(void){
 	memcpy(Tx_Msg.Payload[2].property_contants, "",sizeof(""));
 	Tx_Msg.Payload[2].data_type = TYPE_CODE_STR;
 }
+
 void MakeDataCmd_DataTrans_cpSts(void){
+	char source = '\\';
+	char temp_buf[30];
+
 	Tx_Msg.Msg_type = MSG_TYPE_CALL;
 	Tx_Msg.UniqueID = CstGetTime_Msec_test();	
     Tx_Msg.Payload_len = 3;
 	Tx_Msg.Action_Code = CP_REQ_ACTION_CODE_DATATRANS;
 
-	 memset(Tx_Msg.Payload[0].property_name, 0x00, sizeof(Tx_Msg.Payload[0].property_name));
+	memset(Tx_Msg.Payload[0].property_name, 0x00, sizeof(Tx_Msg.Payload[0].property_name));
 	memcpy(Tx_Msg.Payload[0].property_name, "vendorId",sizeof("vendorId"));
 
 	memset(Tx_Msg.Payload[0].property_contants, 0x00, sizeof(Tx_Msg.Payload[0].property_contants));
@@ -1997,10 +2002,7 @@ void MakeDataCmd_DataTrans_cpSts(void){
 
 	Tx_Msg.Payload[2].sub_Payload = tx_sub_Payload;
 	Tx_Msg.Payload[2].subPayload_len = 1;
-	char source = '\\';
-	sprintf((Tx_Msg.Payload[2].sub_Payload)->property_contants, 
-	//"{\"position\":},{\"temperature\":\"%d\"},{\"humidity\":}",ChargerTemperate);
-	//"{\"temperature\":\"%d\"}",ChargerTemperate);
-	//"{%c\"position%c\":%c\"%s%c\"},{%c\"temperature%c\":%c\"%d%c\"},{%c\"humidity%c\":%c\"%s%c\"}",source,source,source,"1",source,source,source,source,ChargerTemperate, source,source,source,source,"1",source);
-	"{%c\"position%c\":%c\"%s%c\"},{%c\"temperature%c\":%c\"%d%c\"},{%c\"humidity%c\":%c\"%s%c\"}",source,source,source,"1",source,source,source,source,"1", source,source,source,source,"1",source);
+	GetDateTime(temp_buf);
+	//sprintf((Tx_Msg.Payload[2].sub_Payload)->property_contants, "{\"timestamp\":\"%s\",\"sampledValue\":[{%c\"position%c\":%c\"%s%c\"},{%c\"temperature%c\":%c\"%d%c\"},{%c\"humidity%c\":%c\"%s%c\"}]}",temp_buf,source,source,source,"1",source,source,source,source,"1", source,source,source,source,"1",source);
+	sprintf((Tx_Msg.Payload[2].sub_Payload)->property_contants, "{\"timestamp\":\"%s\",\"sampledValue\":[{\"position\":\"%s\"},{\"temperature\":\"%d\"},{\"humidity\":\"%s\"}]}",temp_buf,"1","1","1");
 }

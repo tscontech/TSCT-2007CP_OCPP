@@ -316,8 +316,8 @@ static CURLcode WS_Server_connect(void)
 	char ConnURLAddr_buf[120];
 	char chBuf[15];
 
-	// curl_global_init(CURL_GLOBAL_DEFAULT);
 	pthread_mutex_lock(&curlMutex);
+	printf("[WS_Server_connect]pthread_mutex_lock \r\n");
 	if(curl != NULL)
 	{
 		isBrokenSocket = true;
@@ -326,6 +326,7 @@ static CURLcode WS_Server_connect(void)
 		curl = NULL;
 	}
 	curl = curl_easy_init();
+	printf("[WS_Server_connect]curl_easy_init \r\n");
 	
 	if(curl)	{
 		memset(ConnURLAddr_buf, 0x00, sizeof(ConnURLAddr_buf));
@@ -1176,7 +1177,7 @@ static bool OCPP_CALL_Senario(void)
 		if(OCPP_cpSts_flg == true)
 		{
 			OCPP_cpSts_flg = false;
-			//MakeDataCmd_DataTrans_cpSts();
+			MakeDataCmd_DataTrans_cpSts();
 			return true;
 		}
 		
@@ -1195,7 +1196,9 @@ static void NetRun(void)
 
     if(!bConnect){
         usleep(200*1000);
+		printf("bConnect false \r\n");
 		WS_Server_connect();		
+		printf("re connect \r\n");
 		usleep(200*1000);
     }
     else{
