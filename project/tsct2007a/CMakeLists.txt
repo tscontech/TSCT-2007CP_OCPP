@@ -187,6 +187,7 @@ add_executable(${CMAKE_PROJECT_NAME}
     tsctparsing.c
     tsctobd.c
     tsctsecc.c
+    temperature_humidity.c
     #qrencode
     tsctqrencode/bitstream.c
     tsctqrencode/mask.c

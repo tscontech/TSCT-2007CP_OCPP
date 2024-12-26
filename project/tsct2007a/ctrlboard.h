@@ -524,6 +524,8 @@ CREDIT_PAY_STRUCT credit_Pay[2];
 SHM_DATA_IF_INFO shmDataIfInfo;
 
 SHM_DATA_APP_INFO shmDataAppInfo;
+int chager_Temperature; 
+int chager_Humidity;
 bool EmgControl; // 모든 동작을 정지 시키고 대기 화면으로 이동 시킨다. 충전중에는 뒤로 가서 대기 화면으로 간다.
 bool sleepOnCheck;
 bool sleepOn1chCheck;

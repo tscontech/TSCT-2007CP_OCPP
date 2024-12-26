@@ -316,7 +316,7 @@ static CURLcode WS_Server_connect(void)
 	char ConnURLAddr_buf[120];
 	char chBuf[15];
 
-	pthread_mutex_lock(&curlMutex);
+	//pthread_mutex_lock(&curlMutex);
 	printf("[WS_Server_connect]pthread_mutex_lock \r\n");
 	if(curl != NULL)
 	{
@@ -361,7 +361,7 @@ static CURLcode WS_Server_connect(void)
 			isBrokenSocket = false;
 		}
 	}
-	pthread_mutex_unlock(&curlMutex);
+	//pthread_mutex_unlock(&curlMutex);
   
     return ret;
 }
@@ -516,36 +516,32 @@ bool Tsct_Curl_Ws_Recv(void)
 	size_t rlen;
 	struct curl_ws_frame* meta;
 
-	pthread_mutex_lock(&curlMutex);
+	//pthread_mutex_lock(&curlMutex);
 	if(curl == NULL || isBrokenSocket) 
 	{
-		pthread_mutex_unlock(&curlMutex);
+		//pthread_mutex_unlock(&curlMutex);
 		sleep(1);
 		return false;
 	}
 	ret = curl_ws_recv(curl, curl_ws_recv_buf, sizeof(curl_ws_recv_buf), &rlen, &meta);
-	pthread_mutex_unlock(&curlMutex);
+	//pthread_mutex_unlock(&curlMutex);
 	if(ret == CURLE_AGAIN) {
 		return false;
 	}
 	// Check curl receive Error
 	else if(ret > 0){
-		bRecvConnCnt++;
-		CtLogRed("\r\nRecv fail %d\r\n", ret); //Error Code 56 - Connection Lost
 		Clear_Rx_Msg_Buff();
-		if(bRecvConnCnt > 0 || ret == 56){
-			bRecvConnCnt = 0;
-			pthread_mutex_lock(&curlMutex);
-			if(bConnect)
-			{
-				isBrokenSocket = true;
-				printf("[Tsct_Curl_Ws_Recv] curl_easy_cleanup()");
-				curl_easy_cleanup(curl);
-				curl = NULL;
-			}
-			pthread_mutex_unlock(&curlMutex);
-			bConnect = false;
+		CtLogRed("\r\nRecv fail %d\r\n", ret); //Error Code 56 - Connection Lost
+		
+		//pthread_mutex_lock(&curlMutex);
+		if(bConnect)
+		{
+			isBrokenSocket = true;
+			curl_easy_cleanup(curl);
+			curl = NULL;
 		}
+		//pthread_mutex_unlock(&curlMutex);
+		bConnect = false;
 		sleep(1);
 		return false;
 	}
@@ -899,10 +895,10 @@ void Tsct_Curl_Ws_Trans(void)	// CALL
 		bErrorWaitFlg = false;
 	}
 
-	pthread_mutex_lock(&curlMutex);
+	//pthread_mutex_lock(&curlMutex);
 	if(curl == NULL || isBrokenSocket) 
 	{
-		pthread_mutex_unlock(&curlMutex);
+		//pthread_mutex_unlock(&curlMutex);
 		sleep(1);
 		return;
 	}
@@ -918,7 +914,7 @@ void Tsct_Curl_Ws_Trans(void)	// CALL
 		return;
 		isBrokenSocket = false;
 	}
-	pthread_mutex_unlock(&curlMutex);
+	//pthread_mutex_unlock(&curlMutex);
 	// else{
 		OcppTxMsgLog("%s", curl_ws_send_buf);
 		// printf("\r\nSend Success :\r\n %s\r\n", curl_ws_send_buf);
@@ -1195,11 +1191,12 @@ static void NetRun(void)
 	}
 
     if(!bConnect){
+//		pthread_mutex_init(&curlMutex, NULL);
         usleep(200*1000);
 		printf("bConnect false \r\n");
 		WS_Server_connect();		
 		printf("re connect \r\n");
-		usleep(200*1000);
+		//usleep(200*1000);
     }
     else{
 		ret = OCPP_CALL_Senario();
@@ -1261,7 +1258,7 @@ static void* WSClientThread(void* arg)
 			Clear_Rx_Msg_Buff();
 			iteEthGetLink_WS = false;
 			bConnect = false;
-			pthread_mutex_lock(&curlMutex);
+			//pthread_mutex_lock(&curlMutex);
 			if(curl != NULL)
 			{
 				isBrokenSocket = true;
@@ -1269,7 +1266,7 @@ static void* WSClientThread(void* arg)
 				curl_easy_cleanup(curl);
 				curl = NULL;
 			}
-			pthread_mutex_unlock(&curlMutex);
+			//pthread_mutex_unlock(&curlMutex);
 			usleep(200*1000); 
 			continue;
 		}
@@ -1277,7 +1274,7 @@ static void* WSClientThread(void* arg)
 		if(iteEthGetLink_WS == false){
 			NetworkReset();
 			iteEthGetLink_WS = true;
-			pthread_mutex_lock(&curlMutex);
+			//pthread_mutex_lock(&curlMutex);
 			if(curl != NULL)
 			{
 				isBrokenSocket = true;
@@ -1285,7 +1282,7 @@ static void* WSClientThread(void* arg)
 				curl_easy_cleanup(curl);
 				curl = NULL;
 			}
-			pthread_mutex_unlock(&curlMutex);
+			//pthread_mutex_unlock(&curlMutex);
 			usleep(200*1000); 
 			continue;
 		}
@@ -1551,7 +1548,7 @@ void WsClientInit(void)
 
 	curl_global_init(CURL_GLOBAL_DEFAULT);
 
-	pthread_mutex_init(&curlMutex, NULL);
+	//pthread_mutex_init(&curlMutex, NULL);
 
 	if (sWSRxTask == 0)
 	{

@@ -126,8 +126,7 @@ int SDL_main(int argc, char *argv[]){
 
     FaultManageInit();  printf("-----FaultManageInit-----\n ");
 
-    printf("Lorem Ipsum\n");
-    printf("한글도 나오나?\n");
+    Temperature_Humidity_Init();
 
     CtLogMagenta("[SDL_main] SceneInit \r\n");
     SceneInit();

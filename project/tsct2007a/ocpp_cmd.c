@@ -1975,6 +1975,7 @@ void MakeDataCmd_DataTrans_j1(void){
 void MakeDataCmd_DataTrans_cpSts(void){
 	char source = '\\';
 	char temp_buf[30];
+	char temp_buf2[150];
 
 	Tx_Msg.Msg_type = MSG_TYPE_CALL;
 	Tx_Msg.UniqueID = CstGetTime_Msec_test();	
@@ -1997,12 +1998,23 @@ void MakeDataCmd_DataTrans_cpSts(void){
 
 	memset(Tx_Msg.Payload[2].property_name, 0x00, sizeof(Tx_Msg.Payload[2].property_name));
 	memcpy(Tx_Msg.Payload[2].property_name, "data",sizeof("data"));
-
-	Tx_Msg.Payload[2].data_type = TYPE_CODE_ARR;
-
+	Tx_Msg.Payload[2].data_type = TYPE_CODE_STR;
+	
+	GetDateTime(temp_buf);
+/*
 	Tx_Msg.Payload[2].sub_Payload = tx_sub_Payload;
 	Tx_Msg.Payload[2].subPayload_len = 1;
-	GetDateTime(temp_buf);
-	//sprintf((Tx_Msg.Payload[2].sub_Payload)->property_contants, "{\"timestamp\":\"%s\",\"sampledValue\":[{%c\"position%c\":%c\"%s%c\"},{%c\"temperature%c\":%c\"%d%c\"},{%c\"humidity%c\":%c\"%s%c\"}]}",temp_buf,source,source,source,"1",source,source,source,source,"1", source,source,source,source,"1",source);
-	sprintf((Tx_Msg.Payload[2].sub_Payload)->property_contants, "{\"timestamp\":\"%s\",\"sampledValue\":[{\"position\":\"%s\"},{\"temperature\":\"%d\"},{\"humidity\":\"%s\"}]}",temp_buf,"1","1","1");
+
+	memset(Tx_Msg.Payload[2].sub_Payload[0].property_name, 0x00, sizeof(Tx_Msg.Payload[2].sub_Payload[0].property_name));
+	memset(Tx_Msg.Payload[2].sub_Payload[0].property_name, "timestamp", sizeof("timestamp"));
+
+	memset(Tx_Msg.Payload[2].sub_Payload[0].property_contants, 0x00, sizeof(Tx_Msg.Payload[2].sub_Payload[0].property_contants));
+	memset(Tx_Msg.Payload[2].sub_Payload[0].property_contants, temp_buf, sizeof(temp_buf));
+
+	Tx_Msg.Payload[2].sub_Payload[0].data_type = TYPE_CODE_STR;
+*/
+	memset(Tx_Msg.Payload[2].property_contants, 0x00, sizeof(Tx_Msg.Payload[2].property_contants));
+	sprintf(temp_buf2, "[{%c\"timestamp%c\":%c\"%s%c\",%c\"sampledValue%c\":[{%c\"position%c\":%c\"%s%c\",%c\"temperature%c\":%c\"%d%c\",%c\"humidity%c\":%c\"%d%c\"}]}]",source,source,source,temp_buf,source,source,source,source,source,source,"1",source,source,source,source,chager_Temperature, source,source,source,source,chager_Humidity,source);
+	memcpy(Tx_Msg.Payload[2].property_contants, temp_buf2,sizeof(temp_buf2));
+	
 }
