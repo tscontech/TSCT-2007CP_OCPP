@@ -75,11 +75,13 @@ static ITUIcon* sMeterErrIcon;
 static ITUIcon* sMeterIcon;
 static ITUIcon* sServerErrIcon;
 static ITUIcon* sServerIcon;
+static ITUIcon* sNetErrIcon;
+static ITUIcon* sNetIcon;
 
 static ITUIcon* smainlogo_icon;
 
 static ITUText* sTopChargeIDText;
-
+bool lastSeccConSetVal = false;
 bool lastServerConSetVal = true;		// Current Status
 
 unsigned char serdiscon_cnt = 0;
@@ -88,7 +90,6 @@ bool lastMeterConSetVal = true;			// Current Status
 
 extern bool bAmiErrChk;
 extern bool bPlcConn;
-
 
 //-----------------------------------------------------------------------
 // Function
@@ -122,6 +123,10 @@ static void FindTopWidget(void)
 		assert(sServerErrIcon);
 		sServerIcon = ituSceneFindWidget(&theScene, "ServerIcon");
 		assert(sServerIcon);
+		sNetErrIcon = ituSceneFindWidget(&theScene, "NetErrIcon");
+		assert(sNetErrIcon);
+		sNetIcon = ituSceneFindWidget(&theScene, "NetIcon");
+		assert(sNetIcon);
 
 		smainlogo_icon = ituSceneFindWidget(&theScene, "mainlogo_icon");
 		assert(smainlogo_icon);
@@ -138,6 +143,8 @@ void TopWidgetVisable(bool flag)
 	ituWidgetSetVisible(sServerErrIcon, flag);
 	ituWidgetSetVisible(sServerIcon, flag);
 	ituWidgetSetVisible(smainlogo_icon, flag);
+	ituWidgetSetVisible(sNetErrIcon, flag);
+	ituWidgetSetVisible(sNetIcon, flag);
 
 	ituWidgetSetVisible(sTopChargeIDText, flag);
 }
@@ -153,7 +160,7 @@ void TopTimerWidgetMove(int pos_x, int pos_y)
 bool GetServerCon(void)
 {
 	return ((theConfig.ConfirmSelect != USER_AUTH_NET) || \
-	((shmDataIfInfo.connect_status) && (bConnect) && !bWaitResFlg));
+	((shmDataIfInfo.connect_status) && (bConnect) && !ServerCallError));
 }
 
 bool GetMeterCon(void)
@@ -163,7 +170,27 @@ bool GetMeterCon(void)
 
 bool GetPlcCon(void)
 {
-	return bPlcConn;
+	return !bPlcConn;
+}
+
+void SetNetCon(void)
+{
+	bool bSet = TSCT_NetworkIsReady();
+
+	if(sToBackground == NULL || lastSeccConSetVal == bSet)	return;
+
+	lastSeccConSetVal = bSet;
+
+	if(bSet)
+	{
+		ituWidgetSetVisible((ITUWidget*)sNetErrIcon, false);
+		ituWidgetSetVisible((ITUWidget*)sNetIcon, true);
+	}
+	else
+	{
+		ituWidgetSetVisible((ITUWidget*)sNetErrIcon, true);
+		ituWidgetSetVisible((ITUWidget*)sNetIcon, false);
+	}
 }
 
 void SetServerCon(void)
@@ -370,10 +397,13 @@ static void* sTopStatusTaskFuntion(void* arg)
 		sleep(1);
 		SetServerCon();
 		SetMeterCon();
+		SetNetCon();
 
 		if(CsConfigVal.bReqRmtStartTsNo){
 			bDevChannel = CsConfigVal.bReqRmtStartTsNo - 1;
 			shmDataAppInfo.auth_type[0] = SERVER_AUTH;
+			shmDataAppInfo.app_order = APP_ORDER_REMOTE_CHECK;
+			sleep(2);
 			ituLayerGoto(ituSceneFindWidget(&theScene, "CardWaitLayer"));
 		}
 
@@ -523,6 +553,8 @@ void TopInitLayer(void)
 		sMeterIcon = ituSceneFindWidget(&theScene, "MeterIcon");
 		sServerErrIcon = ituSceneFindWidget(&theScene, "ServerErrIcon");
 		sServerIcon = ituSceneFindWidget(&theScene, "ServerIcon");
+		sNetErrIcon = ituSceneFindWidget(&theScene, "NetErrIcon");
+		sNetIcon = ituSceneFindWidget(&theScene, "NetIcon");	
 
 		smainlogo_icon = ituSceneFindWidget(&theScene, "mainlogo_icon");
 

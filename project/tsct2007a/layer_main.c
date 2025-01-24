@@ -120,17 +120,18 @@ bool MainStartOnPress(ITUWidget* widget, char* param)
         ShowWhmErrorDialogBox(ERR_AMI_DISCON);
         return true;
     }
-
-    if(!GetPlcCon())
+/*
+    if(Secc_IsReady())
     {	
         ShowWhmErrorDialogBox(ERR_PLC_DISCON);
         return true;
     }
-    // if(!GetServerCon())
-    // {
-    //     ShowWhmErrorDialogBox(ERR_SERVER_DISCON);
-    //     return true;
-    // }
+*/	
+     if(!GetServerCon())
+     {
+         ShowWhmErrorDialogBox(ERR_SERVER_DISCON);
+         return true;
+     }
 
 	gAmiChargeWatt = 0.0;
 	gAmiStartWatt = 0.0;

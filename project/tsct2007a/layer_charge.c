@@ -50,6 +50,7 @@ static ITUText* sEffectiveCurrentText;
 static ITUText* sEnergyUsedText;
 static ITUText* sChargeTimeText;
 static ITUText* sUnitPricetxt;
+static ITUText* susertxt;
 
 //static ITUText* seffectiveCurrenttxt1;
 static ITUText* sEffectiveCurrentText1;
@@ -234,6 +235,7 @@ static void CardReaderListenerOnCharging(char *data, int size)
 		if(!memcmp(shmDataAppInfo.card_no, data, size))
 		{
 			shmDataAppInfo.charge_comp_status = END_CARD;
+			printf("충전 종료  memcmp(shmDataAppInfo.card_no, data, size)");
 			TSCT_ChargingStop();
 		}
 		else
@@ -383,6 +385,11 @@ static void* sChargeMonitoringTaskFuntion(void* arg)
 
 			RequestPollingStart();
 		}
+		if(ServerCallError)
+		{
+			StopCharge();
+			ituLayerGoto(ituSceneFindWidget(&theScene, "ch2FinishLayer"));
+		}
 
 		if(startTsQ.faultChargFlg)
 		{
@@ -400,13 +407,17 @@ static void* sChargeMonitoringTaskFuntion(void* arg)
 
 		if(	SeccTxData.status_fault & (1<<SECC_STAT_STOP)) {
 			CtLogRed("Charge Stop by SECC [%lu]", SeccTxData.status_fault);
-			TSCT_ChargingStop();
+			ShowWhmErrorDialogBox(ERR_CHARGE);
+			//TSCT_ChargingStop();
 		}		
 
 		if(theConfig.OperationMode == OP_FREE_MODE \
 		&& theConfig.FreeChargingTime != 0	\
 		&& sChargeTime/60 > theConfig.FreeChargingTime)	
+		{
 			TSCT_ChargingStop();
+		}
+			
 
 		if(CsConfigVal.bReqRmtStopTSFlg){
 			// CsConfigVal.bReqRmtStopTSFlg = false;
@@ -463,7 +474,8 @@ static void ChargeFaultMonitoringTaskFuntion(void *arg)
 			shmDataAppInfo.charge_comp_status = END_ERR;
 			CstSetEpqStatus(CST_OUT_OVER_CURRENT, false);
 			ShowWhmErrorDialogBox(ERR_OV_CURT);
-			// EventCode_buf |= 1 << EVE_OVC;
+			charger_errcode = ERR_CODE_OV_CURT;
+			SetCpStatus(CP_STATUS_CODE_FAULT, bDevChannel+1);
 		}
 		if(Fault_Count[1] > 10){ 
 			CtLogRed("Charge Over Voltage Fault!!!!!!!!!!!!!!!!!!!");		
@@ -473,7 +485,8 @@ static void ChargeFaultMonitoringTaskFuntion(void *arg)
 			shmDataAppInfo.charge_comp_status = END_ERR;
 			CstSetEpqStatus(CST_OUT_OVER_VOLTAGE, false);
 			ShowWhmErrorDialogBox(ERR_OV_VOLT);
-			// EventCode_buf |= 1 << EVE_OVV;
+			charger_errcode = ERR_CODE_OV_VOLT;
+			SetCpStatus(CP_STATUS_CODE_FAULT, bDevChannel+1);
 		}
 		if(Fault_Count[2] > 10){ 
 			CtLogRed("Charge Under Voltage Fault!!!!!!!!!!!!!!!!!!!");
@@ -483,7 +496,8 @@ static void ChargeFaultMonitoringTaskFuntion(void *arg)
 			shmDataAppInfo.charge_comp_status = END_ERR;
 			CstSetEpqStatus(CST_IN_UNDER_VOLTAGE, false);
 			ShowWhmErrorDialogBox(ERR_UD_VOLT);
-			// EventCode_buf |= 1 << EVE_UDV;
+			charger_errcode = ERR_CODE_UD_VOLT;
+			SetCpStatus(CP_STATUS_CODE_FAULT, bDevChannel+1);
 		}
 		// CtLogYellow("ChargeFault Cnt : %d / Current : %d, Volt : %d ", Fault_Count, chk_Current, chk_Volt); LOG OFF
 	}
@@ -635,10 +649,14 @@ static void CPListenerOnCharge(int ch, unsigned char nAdcValue, CPVoltage voltag
 					if(StartTimeCheck)
 					{
 						AudioPlay("A:/sounds/startCharge.wav", NULL);
+						ituWidgetSetVisible(susertxt, false);
 						StartTimeCheck = false;
 						shmDataAppInfo.app_order = APP_ORDER_CHARGING;
 						gettimeofday(&stv, NULL);
 						SetCpStatus(CP_STATUS_CODE_CHARGING, bDevChannel+1);  
+						
+						ituSpritePlay(sChargeSprite, CH1);	
+						sChargeSpritePlaybool = true;
 					}		
 			
 					shmDataAppInfo.app_order = APP_ORDER_CHARGING;
@@ -784,6 +802,8 @@ bool ChargeOnEnter(ITUWidget* widget, char* param)
 		assert(sChargeTimeText);
 		sStopChargeButton = ituSceneFindWidget(&theScene, "stopChargeButton");
 		assert(sStopChargeButton);		
+		susertxt = ituSceneFindWidget(&theScene, "usertxt");
+		assert(susertxt);		
 		
 		sEffectiveCurrentText1 = ituSceneFindWidget(&theScene, "effectiveCurrentText1");
 		assert(sEffectiveCurrentText1);
@@ -820,7 +840,7 @@ bool ChargeOnEnter(ITUWidget* widget, char* param)
 	memset(CsConfigVal.scnd_card_no,'\0', sizeof(CsConfigVal.scnd_card_no));
 	memset(CsConfigVal.parentId, '\0', sizeof(CsConfigVal.parentId));
 
-	AudioPlay("A:/sounds/startCharge.wav", NULL);
+	//AudioPlay("A:/sounds/startCharge.wav", NULL);
 	
 	bChkCardRxFlg = false;
 	CardReaderStartMonitoring(CardReaderListenerOnCharging);
@@ -853,10 +873,11 @@ bool ChargeOnEnter(ITUWidget* widget, char* param)
 		ituWidgetSetVisible(sreadyTextIcon, false);
 		ituWidgetSetVisible(sreadyChgGageIcon, false);
 		ituWidgetSetVisible(schargingTextIcon, true);
-		ituWidgetSetVisible(sEffectiveCurrentText, true);				
+		ituWidgetSetVisible(sEffectiveCurrentText, true);	
+		ituWidgetSetVisible(susertxt, true);
 	// }	
-	ituSpritePlay(sChargeSprite, CH1);	
-	sChargeSpritePlaybool = true;
+	//ituSpritePlay(sChargeSprite, CH1);	
+	//sChargeSpritePlaybool = true;
 	
 	LEDStartBlink();
 

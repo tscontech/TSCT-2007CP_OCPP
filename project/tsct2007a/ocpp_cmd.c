@@ -24,18 +24,15 @@
 
 #define A2_IDDR
 
+const char *sampledValue_format = 
+        "{\"timestamp\":\"%s\",\"sampledValue\":[{\"value\":\"%lu\",\"measurand\":\"Energy.Active.Import.Register\",\"context\":\"Sample.Clock\",\"unit\":\"Wh\"},"
+        "{\"value\":\"%d\",\"measurand\":\"Current.Export\",\"context\":\"Sample.Clock\",\"unit\":\"A\"},"
+        "{\"value\":\"%d\",\"measurand\":\"Voltage\",\"context\":\"Sample.Clock\",\"unit\":\"V\"}]}";
 
-// const char* AllConfigArr[] = {
-// 	"AuthorizeRemoteTxRequests",
-// 	"ClockAlignedDataInterval",
-// 	"ConnectionTimeOut",
-
-// }
-
-// const char* Config_Arr[] = {
-// 	"NONE",
-// 	"MeterValueSampleInterval",
-// };
+const char *TransactionEnd_format = 
+        "{\"timestamp\":\"%s\",\"sampledValue\":[{\"value\":\"%lu\",\"measurand\":\"Energy.Active.Import.Register\",\"context\":\"Transaction.End\",\"unit\":\"Wh\"},"
+        "{\"value\":\"%d\",\"measurand\":\"Current.Export\",\"context\":\"Transaction.End\",\"unit\":\"A\"},"
+        "{\"value\":\"%d\",\"measurand\":\"Voltage\",\"context\":\"Transaction.End\",\"unit\":\"V\"}]}";
 
 typedef enum{
 	RES_ACCEPT = 0,
@@ -45,15 +42,6 @@ typedef enum{
 	RES_NOTSUPPT,
 	RES_SCHEDULED,
 } RES_TYPE;
-
-char batDataName [8][10] = {
-	"timeStamp", "vin", "soc", "soh", "bpa", "bpv", "bsv", "bmt"
-};
-
-char batDataNameEnc [2][12] = {
-	"timeStamp", "batteryData", "soc", "soh", "bpa", "bpv", "bsv", "bmt"
-};
-
 
 static uint64_t String2Integer(char* str)
 {
@@ -229,9 +217,9 @@ void DataProcCmd_Boot(void)
 	{
 		if(!strcmp(Rx_Msg.Payload[i].property_name, "interval"))
 		{
-			CfgKeyVal[5].CfgKeyDataInt = String2Integer(Rx_Msg.Payload[i].property_contants);
+			CfgKeyVal[5].CfgKeyDataInt = 30;//String2Integer(Rx_Msg.Payload[i].property_contants);
 			if(CfgKeyVal[5].CfgKeyDataInt==0)
-				CfgKeyVal[5].CfgKeyDataInt = 10;	// Default 10sec
+				CfgKeyVal[5].CfgKeyDataInt = 30;	// Default 10sec
 		}
 		else if(!strcmp(Rx_Msg.Payload[i].property_name, "status"))
 		{
@@ -520,13 +508,8 @@ void DataProcCmd_HB(void)
 void MakeDataCmd_MeterVal(void)
 {
 	char temp_buf[50];
-	// uint32_t temp_buf32 = 0;
-
 	Tx_Msg.Msg_type = MSG_TYPE_CALL;
-
-	// Tx_Msg.UniqueID = CstGetTime_Msec_test();
 	Tx_Msg.UniqueID = MeterValQ[0].Uid_Mv;
-
     Tx_Msg.Payload_len = 3;
 
 	Tx_Msg.Action_Code = CP_REQ_ACTION_CODE_METERVAL;
@@ -542,22 +525,20 @@ void MakeDataCmd_MeterVal(void)
 	memcpy(Tx_Msg.Payload[1].property_name, "transactionId",sizeof("transactionId"));
 
 	memset(Tx_Msg.Payload[1].property_contants, 0x00, sizeof(Tx_Msg.Payload[1].property_contants));
-	sprintf(temp_buf,"%llu",CsConfigVal.bTrId[bDevChannel+1]);
+	sprintf(temp_buf,"%llu",CsConfigVal.bTrId[1]);
 
 	memcpy(Tx_Msg.Payload[1].property_contants, temp_buf,sizeof(temp_buf));
 	Tx_Msg.Payload[1].data_type = TYPE_CODE_INT;
 
     memset(Tx_Msg.Payload[2].property_name, 0x00, sizeof(Tx_Msg.Payload[2].property_name));
 	memcpy(Tx_Msg.Payload[2].property_name, "meterValue",sizeof("meterValue"));
-
 	Tx_Msg.Payload[2].data_type = TYPE_CODE_ARR;
-
 	Tx_Msg.Payload[2].sub_Payload = tx_sub_Payload;
 	Tx_Msg.Payload[2].subPayload_len = 1;
-
-	//sprintf((Tx_Msg.Payload[1].sub_Payload)->property_contants, "{\"timestamp\":\"%s\",\"sampledValue\":[{\"value\":\"%lu\"}]}", MeterValQ[0].Time_Stamp, MeterValQ[0].Sampled_Val);
-	//printf("[MakeDataCmd_MeterVal] %s \r\n", (Tx_Msg.Payload[1].sub_Payload)->property_contants);
-	
+	memset((Tx_Msg.Payload[2].sub_Payload)->property_contants, 0x00, sizeof((Tx_Msg.Payload[2].sub_Payload)->property_contants));
+	sampledValue_Data(2);
+	//printf("data : %s\r\n", (Tx_Msg.Payload[2].sub_Payload)->property_contants);
+	/*
 	if(MeterValQ[0].Meterval_Flg == METER_VAL_CLOCK_TYPE)
 		sprintf((Tx_Msg.Payload[2].sub_Payload)->property_contants, "{\"timestamp\":\"%s\",\"sampledValue\":[{\"value\":\"%lu\",\"measurand\":\"Energy.Active.Import.Register\",\"context\":\"Sample.Clock\",\"unit\":\"Wh\"},{\"value\":\"%d\",\"measurand\":\"Current.Export\",\"context\":\"Sample.Clock\",\"unit\":\"A\"},{\"value\":\"%d\",\"measurand\":\"Voltage\",\"context\":\"Sample.Clock\",\"unit\":\"V\"}]}", MeterValQ[0].Time_Stamp, (MeterValQ[0].Sampled_Val * 10), MeterValQ[0].Current/100, MeterValQ[0].Volt/10);
 	else if(MeterValQ[0].Meterval_Flg == METER_VAL_SAMP_TYPE)
@@ -566,12 +547,77 @@ void MakeDataCmd_MeterVal(void)
 	}
 	else if(MeterValQ[0].Meterval_Flg == METER_VAL_TRIG_TYPE)
 		sprintf((Tx_Msg.Payload[2].sub_Payload)->property_contants, "{\"timestamp\":\"%s\",\"sampledValue\":[{\"value\":\"%lu\",\"measurand\":\"Energy.Active.Import.Register\",\"context\":\"Trigger\",\"unit\":\"Wh\"},{\"value\":\"%d\",\"measurand\":\"Current.Export\",\"context\":\"Trigger\",\"unit\":\"A\"},{\"value\":\"%d\",\"measurand\":\"Voltage\",\"context\":\"Trigger\",\"unit\":\"V\"}]}", MeterValQ[0].Time_Stamp, (MeterValQ[0].Sampled_Val * 10), MeterValQ[0].Current/100, MeterValQ[0].Volt/10);
+		*/	
+}
+
+
+void sampledValue_Data(int Payload_idx)
+{
+	char constants[2048] = {0};
+	char *strings[] = {"", "", "", ""};
+
+	int MeterVal_count = 0; 
+	int for_i = 0;
+	for(for_i = 0; for_i < MAX_QNO_METERVAL; for_i++)
+	{
+		if(MeterValQ[for_i].Meterval_Flg)
+			MeterVal_count++;
+	}
+	
+	for (for_i = 0; for_i < MeterVal_count; for_i++) {
+		if(MeterValQ[for_i].Meterval_Flg == METER_VAL_CLOCK_TYPE)
+		{
+			size_t buffer_size = snprintf(NULL, 0, sampledValue_format, 
+				MeterValQ[for_i].Time_Stamp, 
+				MeterValQ[for_i].Sampled_Val * 10, 
+				MeterValQ[for_i].Current / 100, 
+				MeterValQ[for_i].Volt / 10) + 1;
+
+			strings[for_i] = (char *)malloc(buffer_size);
+
+			snprintf(strings[for_i], buffer_size, sampledValue_format, 
+			MeterValQ[for_i].Time_Stamp, 
+			MeterValQ[for_i].Sampled_Val * 10, 
+			MeterValQ[for_i].Current / 100, 
+			MeterValQ[for_i].Volt / 10);
+		}
+		else if(MeterValQ[for_i].Meterval_Flg == METER_VAL_TRANS_TYPE)
+		{
+			size_t buffer_size = snprintf(NULL, 0, TransactionEnd_format, 
+				MeterValQ[for_i].Time_Stamp, 
+				MeterValQ[for_i].Sampled_Val * 10, 
+				MeterValQ[for_i].Current / 100, 
+				MeterValQ[for_i].Volt / 10) + 1;
+
+			strings[for_i] = (char *)malloc(buffer_size);
+
+			snprintf(strings[for_i], buffer_size, TransactionEnd_format, 
+			MeterValQ[for_i].Time_Stamp, 
+			MeterValQ[for_i].Sampled_Val * 10, 
+			MeterValQ[for_i].Current / 100, 
+			MeterValQ[for_i].Volt / 10);
+		}
+		else{
+			printf("sampledValue_Data break\r\n");
+			break;
+		}
+
+		if (for_i < MeterVal_count - 1) {
+            strcat(strings[for_i], ",");
+        }
+		
+		strcat(constants, strings[for_i]);
+//		printf("sampledValue format %d : %s\r\n", for_i,strings[for_i]);
+//		printf("constants format %s\r\n", constants);
+		free(strings[for_i]);
+    }
+	strcat((Tx_Msg.Payload[Payload_idx].sub_Payload)->property_contants, constants);
 }
 
 void DataProcCmd_MeterVal(void)
 {
-	if(Rx_Msg.UniqueID == MeterValQ[0].Uid_Mv)
-		Reset_MeterVal_Q();
+	//if(Rx_Msg.UniqueID == MeterValQ[0].Uid_Mv)
+	Reset_MeterVal_Q();
 }
 
 void MakeDataCmd_StartTs(void)
@@ -761,20 +807,104 @@ void MakeDataCmd_Stat(uint8_t cntrNo)
 		memcpy(Tx_Msg.Payload[2].property_contants, "Faulted",sizeof("Faulted"));
 		Tx_Msg.Payload[2].data_type = TYPE_CODE_STR;
 
+		char* ErrorCode = ChargerErrorCode();
+		printf("ErrorCode %s\r\n",ErrorCode);
 		memset(Tx_Msg.Payload[3].property_contants, 0x00, sizeof(Tx_Msg.Payload[3].property_contants));
-		memcpy(Tx_Msg.Payload[3].property_contants, "Error",sizeof("Error"));
+		strncpy(Tx_Msg.Payload[3].property_contants, ErrorCode, sizeof(Tx_Msg.Payload[3].property_contants) - 1);
+		//memcpy(Tx_Msg.Payload[3].property_contants, ErrorCode,sizeof(ErrorCode));
 		Tx_Msg.Payload[3].data_type = TYPE_CODE_STR;
-
+		char* VendorErrorCode = ChargerVendorErrorCode();
+		printf("VendorErrorCode %s\r\n",VendorErrorCode);
 		memset(Tx_Msg.Payload[4].property_contants, 0x00, sizeof(Tx_Msg.Payload[4].property_contants));
-		memcpy(Tx_Msg.Payload[4].property_contants, "",sizeof(""));
+		strncpy(Tx_Msg.Payload[4].property_contants, VendorErrorCode, sizeof(Tx_Msg.Payload[4].property_contants) - 1);
+		//memcpy(Tx_Msg.Payload[4].property_contants, VendorErrorCode,sizeof(VendorErrorCode));
 		Tx_Msg.Payload[4].data_type = TYPE_CODE_STR;
-		
 		break;						
 
 	default:
 		printf("Undefined CP Status Send %d\r\n",GetCpStatus(cntrNo));
 		break;
 	}
+}
+
+char* ChargerErrorCode()
+{
+	char* Error;
+	switch(charger_errcode)
+	{
+		case ERR_CODE_EMG: 
+		Error = "OtherError";
+		break;
+
+		case ERR_CODE_OV_VOLT: 
+		Error = "OverVoltage";
+		break;
+
+		case ERR_CODE_OV_CURT: 
+		Error = "OverCurrentFailure";
+		break;
+
+		case ERR_CODE_UD_VOLT: 
+		Error = "UnderVoltage";
+		break;
+
+		case ERR_CODE_TEMP: 
+		Error = "OtherError";
+		break;
+
+		case ERR_CODE_SECC: 
+		Error = "OtherError";
+		break;
+
+		case ERR_CODE_POWERMETER: 
+		Error = "OtherError";
+		break;
+		
+		default:
+		Error = "OtherError";
+		break;
+	}
+	return Error;
+}
+
+char* ChargerVendorErrorCode()
+{
+	char* VendorError;
+	switch(charger_errcode)
+	{
+		case ERR_CODE_EMG: 
+		VendorError = "901";
+		break;
+
+		case ERR_CODE_OV_VOLT: 
+		VendorError = "102";
+		break;
+
+		case ERR_CODE_OV_CURT: 
+		VendorError = "104";
+		break;
+
+		case ERR_CODE_UD_VOLT: 
+		VendorError = "103";
+		break;
+
+		case ERR_CODE_TEMP: 
+		VendorError = "303";
+		break;
+
+		case ERR_CODE_SECC: 
+		VendorError = "403";
+		break;
+
+		case ERR_CODE_POWERMETER: 
+		VendorError = "904";
+		break;
+		
+		default:
+		VendorError = "910";
+		break;
+	}
+	return VendorError;
 }
 
 void DataProcCmd_Stat(void)
@@ -887,23 +1017,24 @@ void MakeDataCmd_StopTs(void)
 	Tx_Msg.Payload_len++;
 
 	//////
-	/*
 	memset(Tx_Msg.Payload[Tx_Msg.Payload_len].property_name, 0x00, sizeof(Tx_Msg.Payload[Tx_Msg.Payload_len].property_name));
 	memcpy(Tx_Msg.Payload[Tx_Msg.Payload_len].property_name, "transactionData",sizeof("transactionData"));
-
 	Tx_Msg.Payload[Tx_Msg.Payload_len].data_type = TYPE_CODE_ARR;
-
 	Tx_Msg.Payload[Tx_Msg.Payload_len].sub_Payload = tx_sub_Payload;
 	Tx_Msg.Payload[Tx_Msg.Payload_len].subPayload_len = 1;
-	sprintf((Tx_Msg.Payload[Tx_Msg.Payload_len].sub_Payload)->property_contants, 
-	"{\"timestamp\":\"%s\",\"sampledValue\":[{\"value\":\"%lu\",\"measurand\":\"Energy.Active.Import.Register\",\"context\":\"Transaction.End\",\"unit\":\"Wh\"},{\"value\":\"%d\",\"measurand\":\"Current.Export\",\"context\":\"Transaction.End\",\"unit\":\"A\"},{\"value\":\"%d\",\"measurand\":\"Voltage\",\"context\":\"Transaction.End\",\"unit\":\"V\"}]}", StopTsConfig.Time_Stamp, (MeterValQ[0].Sampled_Val * 10), MeterValQ[0].Current/100, MeterValQ[0].Volt/10);
+
+	memset((Tx_Msg.Payload[Tx_Msg.Payload_len].sub_Payload)->property_contants, 0x00, sizeof((Tx_Msg.Payload[Tx_Msg.Payload_len].sub_Payload)->property_contants));
+
+	sampledValue_Data(Tx_Msg.Payload_len);
+	
 	Tx_Msg.Payload_len++;
-*/
+
 	CsConfigVal.bReqRmtStopTSFlg = false;
 }
 
 void DataProcCmd_StopTs(void)
 {
+	Reset_MeterVal_Q();
 	if((theConfig.chargingstatus & (1<<(MAX_CONECTOR_ID+1))) \
 	&& (StopTsConfig.Stop_Reason == STOP_REASON_POWER))
 		SetCpStatus(CP_STATUS_CODE_AVAIL,bDevChannel+1);
@@ -914,9 +1045,7 @@ void DataProcCmd_StopTs(void)
 		SetCpStatus(CP_STATUS_CODE_FNISH,bDevChannel+1);
 	CsConfigVal.bReqStopTsFlg = false;
 	theConfig.chargingstatus &= ~(1<<(MAX_CONECTOR_ID+1));
-	
 	shmDataAppInfo.charge_comp_status = END_NONE;
-
 	bConfigSaveFlg = true;
 	// ConfigSave();
 }
@@ -1703,7 +1832,7 @@ void DataProcCmd_RmStart(void)
 {
 	RES_TYPE ret;
 	bool bIdTagFlg = false;
-	uint8_t bCntrNo = 1;
+	int bCntrNo = 1;
 
 	ret = RES_REJECTED;
 
@@ -1719,10 +1848,12 @@ void DataProcCmd_RmStart(void)
 			bCntrNo = String2Integer(Rx_Msg.Payload[i].property_contants);
 		}
 	}
-	if(bIdTagFlg && GetCpStatus(bCntrNo) != CP_STATUS_CODE_CHARGING && bCntrNo > 0){
+
+	if(bIdTagFlg && GetCpStatus(bCntrNo) != CP_STATUS_CODE_CHARGING && bCntrNo > 0 && shmDataAppInfo.app_order <= APP_ORDER_KAKAO_QR){
 		CsConfigVal.bReqRmtStartTsNo = bCntrNo;
 		ret = RES_ACCEPT;
 	}
+	usleep(10*1000);
 	MakeCallRes(ret);
 }
 
@@ -1973,7 +2104,6 @@ void MakeDataCmd_DataTrans_j1(void){
 }
 
 void MakeDataCmd_DataTrans_cpSts(void){
-	char source = '\\';
 	char temp_buf[30];
 	char temp_buf2[150];
 
@@ -1998,23 +2128,73 @@ void MakeDataCmd_DataTrans_cpSts(void){
 
 	memset(Tx_Msg.Payload[2].property_name, 0x00, sizeof(Tx_Msg.Payload[2].property_name));
 	memcpy(Tx_Msg.Payload[2].property_name, "data",sizeof("data"));
-	Tx_Msg.Payload[2].data_type = TYPE_CODE_STR;
-	
+
 	GetDateTime(temp_buf);
-/*
-	Tx_Msg.Payload[2].sub_Payload = tx_sub_Payload;
-	Tx_Msg.Payload[2].subPayload_len = 1;
-
-	memset(Tx_Msg.Payload[2].sub_Payload[0].property_name, 0x00, sizeof(Tx_Msg.Payload[2].sub_Payload[0].property_name));
-	memset(Tx_Msg.Payload[2].sub_Payload[0].property_name, "timestamp", sizeof("timestamp"));
-
-	memset(Tx_Msg.Payload[2].sub_Payload[0].property_contants, 0x00, sizeof(Tx_Msg.Payload[2].sub_Payload[0].property_contants));
-	memset(Tx_Msg.Payload[2].sub_Payload[0].property_contants, temp_buf, sizeof(temp_buf));
-
-	Tx_Msg.Payload[2].sub_Payload[0].data_type = TYPE_CODE_STR;
-*/
 	memset(Tx_Msg.Payload[2].property_contants, 0x00, sizeof(Tx_Msg.Payload[2].property_contants));
-	sprintf(temp_buf2, "[{%c\"timestamp%c\":%c\"%s%c\",%c\"sampledValue%c\":[{%c\"position%c\":%c\"%s%c\",%c\"temperature%c\":%c\"%d%c\",%c\"humidity%c\":%c\"%d%c\"}]}]",source,source,source,temp_buf,source,source,source,source,source,source,"1",source,source,source,source,chager_Temperature, source,source,source,source,chager_Humidity,source);
+	sprintf(temp_buf2, "[{\\\"timestamp\\\":\\\"%s\\\",\\\"sampledValue\\\":[{\\\"position\\\":\\\"%s\\\",\\\"temperature\\\":\\\"%d\\\",\\\"humidity\\\":\\\"%d\\\"}]}]",temp_buf,"",chager_Temperature, chager_Humidity);
 	memcpy(Tx_Msg.Payload[2].property_contants, temp_buf2,sizeof(temp_buf2));
-	
+	Tx_Msg.Payload[2].data_type = TYPE_CODE_STR;
+}
+
+
+void MakeDataCmd_DataTrans_q1(void){
+	char temp_buf2[150];
+
+	Tx_Msg.Msg_type = MSG_TYPE_CALL;
+	Tx_Msg.UniqueID = CstGetTime_Msec_test();	
+    Tx_Msg.Payload_len = 3;
+	Tx_Msg.Action_Code = CP_REQ_ACTION_CODE_DATATRANS;
+
+	memset(Tx_Msg.Payload[0].property_name, 0x00, sizeof(Tx_Msg.Payload[0].property_name));
+	memcpy(Tx_Msg.Payload[0].property_name, "vendorId",sizeof("vendorId"));
+
+	memset(Tx_Msg.Payload[0].property_contants, 0x00, sizeof(Tx_Msg.Payload[0].property_contants));
+	memcpy(Tx_Msg.Payload[0].property_contants, "tscontech",sizeof("tscontech"));
+	Tx_Msg.Payload[0].data_type = TYPE_CODE_STR;
+
+	memset(Tx_Msg.Payload[1].property_name, 0x00, sizeof(Tx_Msg.Payload[1].property_name));
+	memcpy(Tx_Msg.Payload[1].property_name, "messageId",sizeof("messageId"));
+
+	memset(Tx_Msg.Payload[1].property_contants, 0x00, sizeof(Tx_Msg.Payload[1].property_contants));
+	memcpy(Tx_Msg.Payload[1].property_contants, "q1",sizeof("q1"));
+	Tx_Msg.Payload[1].data_type = TYPE_CODE_STR;
+
+	memset(Tx_Msg.Payload[2].property_name, 0x00, sizeof(Tx_Msg.Payload[2].property_name));
+	memcpy(Tx_Msg.Payload[2].property_name, "data",sizeof("data"));
+
+	memset(Tx_Msg.Payload[2].property_contants, 0x00, sizeof(Tx_Msg.Payload[2].property_contants));
+	sprintf(temp_buf2, "{\\\"connectorId\\\":%d,\\\"waitTime\\\":\\\"90\\\",\\\"secureNo\\\":\\\"%s\\\"}",bDevChannel+1, CsConfigVal.SecureNo);
+	memcpy(Tx_Msg.Payload[2].property_contants, temp_buf2,sizeof(temp_buf2));
+	Tx_Msg.Payload[2].data_type = TYPE_CODE_STR;
+}
+
+void MakeDataCmd_DataTrans_q2(void){
+	char temp_buf2[150];
+
+	Tx_Msg.Msg_type = MSG_TYPE_CALL;
+	Tx_Msg.UniqueID = CstGetTime_Msec_test();	
+    Tx_Msg.Payload_len = 3;
+	Tx_Msg.Action_Code = CP_REQ_ACTION_CODE_DATATRANS;
+
+	memset(Tx_Msg.Payload[0].property_name, 0x00, sizeof(Tx_Msg.Payload[0].property_name));
+	memcpy(Tx_Msg.Payload[0].property_name, "vendorId",sizeof("vendorId"));
+
+	memset(Tx_Msg.Payload[0].property_contants, 0x00, sizeof(Tx_Msg.Payload[0].property_contants));
+	memcpy(Tx_Msg.Payload[0].property_contants, "tscontech",sizeof("tscontech"));
+	Tx_Msg.Payload[0].data_type = TYPE_CODE_STR;
+
+	memset(Tx_Msg.Payload[1].property_name, 0x00, sizeof(Tx_Msg.Payload[1].property_name));
+	memcpy(Tx_Msg.Payload[1].property_name, "messageId",sizeof("messageId"));
+
+	memset(Tx_Msg.Payload[1].property_contants, 0x00, sizeof(Tx_Msg.Payload[1].property_contants));
+	memcpy(Tx_Msg.Payload[1].property_contants, "q2",sizeof("q2"));
+	Tx_Msg.Payload[1].data_type = TYPE_CODE_STR;
+
+	memset(Tx_Msg.Payload[2].property_name, 0x00, sizeof(Tx_Msg.Payload[2].property_name));
+	memcpy(Tx_Msg.Payload[2].property_name, "data",sizeof("data"));
+
+	memset(Tx_Msg.Payload[2].property_contants, 0x00, sizeof(Tx_Msg.Payload[2].property_contants));
+	sprintf(temp_buf2, "{\\\"connectorId\\\":%d,\\\"cancelReason\\\":\\\"01\\\"}",bDevChannel+1);
+	memcpy(Tx_Msg.Payload[2].property_contants, temp_buf2,sizeof(temp_buf2));
+	Tx_Msg.Payload[2].data_type = TYPE_CODE_STR;
 }

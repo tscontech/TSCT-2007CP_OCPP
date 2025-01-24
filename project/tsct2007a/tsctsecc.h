@@ -218,5 +218,5 @@ typedef enum{
 
 SECC_CHRG_STEP SeccChrgStep;
 // SECC_CHRG_STEP SeccChrgStep = SECC_CHRG_STEP_NONE;
-
+bool Secc_IsReady(void);
 #endif

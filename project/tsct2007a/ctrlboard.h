@@ -292,6 +292,7 @@ typedef enum{
 #define ERR_TOUCH                   (62)
 #define ERR_RFID                    (63)
 #define ERR_AMI                     (64)
+#define ERR_CHARGE                  (70)
 
 
 typedef struct 
@@ -1050,7 +1051,9 @@ typedef enum {
    APP_ORDER_NONE = 0,         // 
    APP_ORDER_WAIT,             // 1 >>>>>>>>>>>>>>>>>
    APP_ORDER_AUTH_METHOD,      // 2>>>>>>>>>>>>>>>>>>>>>>>     
+   APP_ORDER_KAKAO_QR,
    APP_ORDER_CARD_READER,      // 3
+   APP_ORDER_REMOTE_CHECK,
    APP_ORDER_CUSTOMER_AUTH,    // 4
    APP_ORDER_CONNECTOR_SELECT, // 5 
    APP_ORDER_CONNECT_IN,       // 6

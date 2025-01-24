@@ -35,6 +35,9 @@
 #define FREEFAIL_ERR_TXT1	"무료충전모드 입니다."
 #define FREEFAIL_ERR_TXT2	"회원카드 및 회원번호로 인증 바랍니다."
 
+#define CHARGING_ERR_TXT1	"전기차와 통신 실패하였습니다."
+#define CHARGING_ERR_TXT2	"다시 시도해 주세요."
+
 #define OKDIALOG_TIMEOUT 	20
 
 //-----------------------------------------------------------------------
@@ -429,14 +432,17 @@ void OkDialogShow(bool bGfci, int ch)
 		FindDialogWidget();
 		ituWidgetSetVisible(sLdaBackground, true);
 		ituWidgetSetVisible(sOkDialog, true);
+
+		ituWidgetSetVisible(sOkDialogTitleText1, true);
+		ituWidgetSetVisible(sOkDialogTitleText2, true);
 	}
 }
 
 void ShowWhmErrorDialogBox(unsigned short Ecode)
 {
-	char title[32], title_txt1[40], title_txt2[40];
+	char title[32], title_txt1[50], title_txt2[50];
 
-	if(shmDataAppInfo.app_order == APP_ORDER_CHARGING)
+	if(shmDataAppInfo.app_order == APP_ORDER_CHARGING || shmDataAppInfo.app_order == APP_ORDER_CHARGE_READY)
 		TSCT_ChargingStop();
 
 	sprintf(title, "CODE %2d", Ecode);
@@ -461,9 +467,15 @@ void ShowWhmErrorDialogBox(unsigned short Ecode)
 			GotoStartLayer();
 			usleep(100*1000);
 		}
-		
 		//DialogGotoStartLayer();
-	} else if(Ecode == ERR_TOUCH || Ecode == ERR_RFID || Ecode == ERR_AMI) {
+	}else if(Ecode == ERR_CHARGE){
+		sprintf(title_txt1, CHARGING_ERR_TXT1);
+		sprintf(title_txt2, CHARGING_ERR_TXT2);
+		OkDialogSetTitle(title, title_txt1, title_txt2);
+		OkDialogShow(false, 0);
+		DialogSetTimer(OKDIALOG_TIMEOUT);
+	}
+	 else if(Ecode == ERR_TOUCH || Ecode == ERR_RFID || Ecode == ERR_AMI) {
 		sprintf(title_txt1, REBOOT_ERR_TXT1);
 		sprintf(title_txt2, REBOOT_ERR_TXT2);
 		OkDialogSetTitle(title, title_txt1, title_txt2);
@@ -509,6 +521,9 @@ void OkDialogHide(int ch)
 		
 		if(bErrorcheck1ShowHide && bAmiErrChk)
 			ShowWhmErrorDialogBox(ERR_AMI_DISCON);
+
+		ituWidgetSetVisible(sOkDialogTitleText1, false);
+		ituWidgetSetVisible(sOkDialogTitleText2, false);
 	}
 }
 

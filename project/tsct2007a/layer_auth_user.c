@@ -88,8 +88,8 @@ bool AuthUserOnEnter(ITUWidget* widget, char* param)
 
 	ituWidgetSetVisible(sMemberQrBtn, true);
 
-	//TopHomeBtnVisible(true);
-	TopBackBtnVisible(true);
+	TopHomeBtnVisible(true);
+	//TopBackBtnVisible(true);
 
 	TopSetTimer(CARD_WAIT_TIMEOUT, GotoStartLayer);	
 	//sleep(10);
@@ -160,22 +160,22 @@ bool MemCardOnPress(ITUWidget* widget, char* param)
 
 bool RemoteAuthOnPress(ITUWidget* widget, char* param)
 {
-	// ChannelType activeCh = CstGetUserActiveChannel();
-	// //shmDataAppInfo.auth_type[0] = SERVER_AUTH;
-	// shmDataAppInfo.auth_type[0] = CONNECT_AUTH;
+	 ChannelType activeCh = CstGetUserActiveChannel();
+	 //shmDataAppInfo.auth_type[0] = SERVER_AUTH;
+	 shmDataAppInfo.auth_type[0] = CONNECT_AUTH;
 	
-	// if(!GetMeterCon())
-	// {
-	// 	ShowWhmErrorDialogBox(ERR_AMI_DISCON);
-	// 	return true;
-	// }
-	// if(!GetServerCon())
-	// {
-	// 	ShowWhmErrorDialogBox(ERR_SERVER_DISCON);
-	// 	return true;
-	// }
+	 if(!GetMeterCon())
+	 {
+	 	ShowWhmErrorDialogBox(ERR_AMI_DISCON);
+	 	return true;
+	 }
+	 if(!GetServerCon())
+	 {
+	 	ShowWhmErrorDialogBox(ERR_SERVER_DISCON);
+	 	return true;
+	 }
 
-	// ituLayerGoto(ituSceneFindWidget(&theScene, "connectLayer"));
+	 ituLayerGoto(ituSceneFindWidget(&theScene, "remoteAuthLayer"));
 	return true;
 }
 

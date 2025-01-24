@@ -60,6 +60,7 @@
 #define METER_VAL_SAMP_TYPE		1
 #define METER_VAL_CLOCK_TYPE	2
 #define METER_VAL_TRIG_TYPE		3
+#define METER_VAL_TRANS_TYPE	4
 
 typedef enum {
 	CP_STATUS_CODE_NONE = 0,
@@ -176,15 +177,13 @@ typedef struct {
 	bool bReqEmgBtnFlg;
 	uint8_t batInfo_cfgCnt;
 	// bool bBootPendFlg;
-
+	uint8_t bQREventFlg;
+	char SecureNo[2];
 	bool AllowOfflineTxForUnknownId;
-
 	TRIG_MSG_STAT triggerMsgStat;
 	uint8_t trigMsgCntrId;
-
 	char diagLogUrl[100];
 	DIAG_STAT diagLogReqStep;
-
 } CS_CONFIG_VAL;
 
 CS_CONFIG_VAL CsConfigVal;
@@ -233,7 +232,7 @@ typedef struct sPayloadLite{
 typedef struct sPayload{
 	TYPE_CODE data_type;	
     char property_name[60];
-    char property_contants[350];
+    char property_contants[1024];
 	uint8_t subPayload_len;
 	uint8_t subPayloadArrLen;
 	struct sPayload* sub_Payload;
@@ -293,35 +292,6 @@ typedef struct {
 	uint32_t CfgKeyDataInt
 }TSCT_CFG_KEY;
 
-// 	1	"AuthorizeRemoteTxRequests",
-// 	2	"ClockAlignedDataInterval",
-// 	3	"ConnectionTimeOut",
-// 	4	"ConnectorPhaseRotation",
-// 	5	"GetConfigurationMaxKeys",
-// 	6	"HeartbeatInterval",
-// 	7	"LocalAuthorizeOffline",
-// 	8	"LocalPreAuthorize",
-// 	9	"MeterValuesAlignedData",
-// 	10	"MeterValuesSampledData",
-// 	11	"MeterValueSampleInterval",
-// 	12	"NumberOfConnectors",
-// 	13	"ResetRetries",
-// 	14	"StopTransactionOnInvalidId",
-// 	15	"StopTxnAlignedData",
-// 	16	"StopTxnSampledData",
-// 	17	"SupportedFeatureProfiles",
-// 	18	"TransactionMessageAttempts",
-// 	19	"TransactionMessageRetryInterval",
-// 	20	"UnlockConnectorOnEVSideDisconnect",
-
-// Notyet Use
-// 	21	"LocalAuthListEnabled",
-// 	22	"LocalAuthListMaxLength",
-// 	23	"SendLocalListMaxLength",
-// 	24	"ChargeProfileMaxStackLevel",
-// 	25	"ChargingScheduleAllowedChargingRateUnit",
-// 	26	"ChargingScheduleMaxPeriods",
-// 	27	"MaxChargingProfilesInstalled"
 TSCT_CFG_KEY CfgKeyVal[MAX_CFG];
 
 typedef struct {
@@ -358,6 +328,20 @@ typedef struct {
 
 FW_UPDATE fwUpdateVals;
 
+typedef enum {
+    ERR_CODE_NONE = 0,
+    ERR_CODE_EMG,
+    ERR_CODE_OV_VOLT,
+    ERR_CODE_OV_CURT,
+    ERR_CODE_UD_VOLT,
+	ERR_CODE_TEMP,
+    ERR_CODE_SECC,
+    ERR_CODE_BATDATA,
+	ERR_CODE_POWERMETER,
+} ERR_CODE;
+
+ERR_CODE charger_errcode;
+
 struct tm tNetTime;
 
 struct sPayloadLite subPayloadBat[4500];
@@ -393,5 +377,10 @@ bool CheckUpdateFwDate(void);
 
 uint8_t bChargerCostCheck;
 bool OCPP_cpSts_flg;
+bool Check_Meter_Time();
+int Check_Sampled_Time();
+bool Check_Meter_flg;
+bool Check_Sampled_flg;
+bool ServerCallError;
 
 #endif  /*__TSCTCLIENT_H__*/

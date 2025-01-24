@@ -12,14 +12,6 @@
 #ifndef __TSCTPACKET_H__
 #define __TSCTPACKET_H__
 
-typedef enum {
-    TSCT_ERR_CODE_NONE = 0,
-    TSCT_ERR_CODE_EMG,
-    TSCT_ERR_CODE_BATDATA,
-    TSCT_ERR_CODE_SECCBATDATA,
-} TSCT_ERR_CODE;
-
-
 // From CP Message
 void MakeDataCmd_Auth(void);
 void MakeDataCmd_Boot(void);
@@ -52,5 +44,11 @@ void DataProcCmd_UnlockConnect(void);
 // From DataTrans 
 void MakeDataCmd_DataTrans_j1(void);
 void MakeDataCmd_DataTrans_cpSts(void);
+void MakeDataCmd_DataTrans_q1(void);
+void MakeDataCmd_DataTrans_q2(void);
+
+void sampledValue_Data(int Payload_idx);
+char* ChargerErrorCode();
+char* ChargerVendorErrorCode();
 
 #endif /*__TSCTPACKET_H__*/

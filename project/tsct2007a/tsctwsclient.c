@@ -27,10 +27,7 @@
 //#include "tsctjson.h"
 
 CURL *curl = NULL;
-time_t curlLastSentTime;
 pthread_mutex_t curlMutex;
-uint8_t retryCnt = 0;
-bool bErrorWaitFlg;
 bool isBrokenSocket;
 
 struct curl_blob blob;
@@ -164,6 +161,7 @@ void Add_MeterVal_Q(uint8_t meterValType)
 	if(Qno == MAX_QNO_METERVAL){
 		for(int i = 0; i<(MAX_QNO_METERVAL-1); i++)
 			memcpy(&MeterValQ[i],&MeterValQ[i+1],sizeof(MeterValQ[i]));
+
 		MeterValQ[MAX_QNO_METERVAL-1].Meterval_Flg = meterValType;
 		MeterValQ[MAX_QNO_METERVAL-1].Uid_Mv = CstGetTime_Msec_test();
 		MeterValQ[MAX_QNO_METERVAL-1].Connect_Id = bDevChannel + 1;
@@ -174,6 +172,13 @@ void Add_MeterVal_Q(uint8_t meterValType)
 			t += (uint32_t)(shmDataAppInfo.eqp_watt[i] << ((3-i)*8));
 
 		MeterValQ[Qno].Sampled_Val = t- startTsQ.MeterStart_Val;
+		if(MeterValQ[Qno].Sampled_Val < 0)
+		{
+			MeterValQ[Qno].Sampled_Val = 0;
+		}
+		else{
+			startTsQ.MeterStart_Val = t;
+		}
 		MeterValQ[Qno].Current = TSCTGetAMICurrent();
 		MeterValQ[Qno].Volt = TSCTGetAMIVolt();
 		CtLogRed("[Add_MeterVal_Q %d] Meterval_Flg %d / Sampled_Val %d / %d.%02dA / %d V", Qno, MeterValQ[Qno].Meterval_Flg, MeterValQ[Qno].Sampled_Val, MeterValQ[Qno].Current/100,(MeterValQ[Qno].Current%100), MeterValQ[Qno].Volt/10);
@@ -189,6 +194,14 @@ void Add_MeterVal_Q(uint8_t meterValType)
 			t += (uint32_t)(shmDataAppInfo.eqp_watt[i] << ((3-i)*8));
 
 		MeterValQ[Qno].Sampled_Val = t- startTsQ.MeterStart_Val;
+		if(MeterValQ[Qno].Sampled_Val < 0)
+		{
+			MeterValQ[Qno].Sampled_Val = 0;
+		}
+		else{
+			startTsQ.MeterStart_Val = t;
+		}
+		
 		MeterValQ[Qno].Current = TSCTGetAMICurrent();
 		MeterValQ[Qno].Volt = TSCTGetAMIVolt();
 		CtLogRed("[Add_MeterVal_Q %d] Meterval_Flg %d / Sampled_Val %d / %d.%02dA / %d V", Qno, MeterValQ[Qno].Meterval_Flg, MeterValQ[Qno].Sampled_Val, MeterValQ[Qno].Current/100,(MeterValQ[Qno].Current%100), MeterValQ[Qno].Volt/10);
@@ -203,62 +216,70 @@ void Reset_MeterVal_Q(void)
 		if(MeterValQ[Qno].Meterval_Flg)		Qno++;	
 		else								break;
 	}
-	if(Qno == 0)
-		return;
-	else if (Qno == 1){
-		memcpy(&MeterValQ[0],&MeterValQ[1],sizeof(MeterValQ[0]));
+	for(int i = 0; i < Qno; i++)
+	{
+		MeterValQ[i].Meterval_Flg = false;
+		MeterValQ[i].Uid_Mv = 0;
+		MeterValQ[i].Connect_Id = 0;
+		MeterValQ[i].Sampled_Val = 0;
+		MeterValQ[i].Current = 0;
+		MeterValQ[i].Volt = 0;
 	}
-	else{
-		for(int i = 0; i <= (Qno-2); i++)
-			memcpy(&MeterValQ[i],&MeterValQ[i+1],sizeof(MeterValQ[i]));
-		MeterValQ[Qno-1].Meterval_Flg = false;
-		MeterValQ[Qno-1].Uid_Mv = 0;
-		MeterValQ[Qno-1].Connect_Id = 0;
-		MeterValQ[Qno-1].Sampled_Val = 0;
-		MeterValQ[Qno-1].Current = 0;
-		MeterValQ[Qno-1].Volt = 0;
-	}	
 }
 
-static uint8_t Check_Meter_Time(struct timeval* tval){
+int Check_Sampled_Time() {
 	if((GetCpStatus(bDevChannel+1) != CP_STATUS_CODE_CHARGING) || !sChCharging)
-		return false;
-
-	gettimeofday(&tv_curr, NULL);
-
-	// for Getting Time value Error
-	if(tv_curr.tv_sec < tval->tv_sec)
 	{
-		gettimeofday(tval, NULL);
+		Check_Sampled_flg = false;
 		return false;
 	}
-	else
+		
+	time_t cur_time = CstGetTime();
+	struct tm *currentTime = localtime(&cur_time);
+	int secondsPastHour = currentTime->tm_min * 60 + currentTime->tm_sec; // 정시 기준 경과된 초
+    int secondsUntilNextCycle = 60 - (secondsPastHour % 60);
+	//printf("다음 주기까지 남은 시간: %d초\n", secondsUntilNextCycle);
+	if(secondsUntilNextCycle >=60 && Check_Sampled_flg == false)
 	{
-		if(CfgKeyVal[10].CfgKeyDataInt > 0)
-		{
-			if((tv_curr.tv_sec - tval->tv_sec) >= CfgKeyVal[10].CfgKeyDataInt)
-				return METER_VAL_SAMP_TYPE;
-		}	
-		/*
-		if(CfgKeyVal[1].CfgKeyDataInt > 0)
-		{
-			if((tv_curr.tv_sec % CfgKeyVal[1].CfgKeyDataInt) == 0)
-			{
-				if(lastClockTvSec != tv_curr.tv_sec)
-				{
-					lastClockTvSec = tv_curr.tv_sec;
-					return METER_VAL_CLOCK_TYPE;
-				}
-			}
-		}
-		*/
+		Check_Sampled_flg = true;
+		return METER_VAL_CLOCK_TYPE;
+	}
+	if(secondsUntilNextCycle == 1)
+		Check_Sampled_flg = false;
+
+	return false;
+}
+
+bool Check_Meter_Time(){
+	if((GetCpStatus(bDevChannel+1) != CP_STATUS_CODE_CHARGING) || !sChCharging)
+	{
+		Check_Meter_flg = false;
 		return false;
 	}
+		
+	time_t cur_time = CstGetTime();
+	struct tm *currentTime = localtime(&cur_time);
+	int secondsPastHour = currentTime->tm_min * 60 + currentTime->tm_sec; // 정시 기준 경과된 초
+    int secondsUntilNextCycle = 180 - (secondsPastHour % 180); 
+	//int secondsUntilNextCycle = 60 - (secondsPastHour % 60); 
+
+//	printf("현재 시간: %02d:%02d:%02d\n", currentTime->tm_hour, currentTime->tm_min, currentTime->tm_sec);
+//    printf("다음 주기까지 남은 시간: %d초\n", secondsUntilNextCycle);
+
+	if(secondsUntilNextCycle >=180 && Check_Meter_flg == false)
+	{
+		Check_Meter_flg = true;
+		return true;
+	}
+	if(secondsUntilNextCycle == 1)
+		Check_Meter_flg = false;
+
+	return false;
 }
 
 bool Check_HB_Time(struct timeval* tval){
-	if(GetCpStatus(bDevChannel+1) == CP_STATUS_CODE_CHARGING)
-		return false;
+	//if(GetCpStatus(bDevChannel+1) == CP_STATUS_CODE_CHARGING)
+	//	return false;
 
 	gettimeofday(&tv_curr, NULL);
 
@@ -315,18 +336,17 @@ static CURLcode WS_Server_connect(void)
 	CURLcode ret = CURLE_OK;
 	char ConnURLAddr_buf[120];
 	char chBuf[15];
-
+/*
 	//pthread_mutex_lock(&curlMutex);
-	printf("[WS_Server_connect]pthread_mutex_lock \r\n");
 	if(curl != NULL)
 	{
 		isBrokenSocket = true;
-		printf("[WS_Server_connect]start curl_easy_cleanup()");
 		curl_easy_cleanup(curl);
 		curl = NULL;
 	}
+	*/
+	curl_global_init(CURL_GLOBAL_DEFAULT);
 	curl = curl_easy_init();
-	printf("[WS_Server_connect]curl_easy_init \r\n");
 	
 	if(curl)	{
 		memset(ConnURLAddr_buf, 0x00, sizeof(ConnURLAddr_buf));
@@ -348,7 +368,6 @@ static CURLcode WS_Server_connect(void)
 		if(ret){
 			printf("$$$$$$$$$$$$$$$$$$$$$$$$CURL WebSocket Connect Error %d", ret);
 			printf(" / url : %s\r\n",ConnURLAddr_buf);
-			printf("[WS_Server_connect]end curl_easy_cleanup()");
 			curl_easy_cleanup(curl);
 			curl = NULL;
             bConnect = false;
@@ -515,7 +534,7 @@ bool Tsct_Curl_Ws_Recv(void)
 	CURLcode ret = 1;
 	size_t rlen;
 	struct curl_ws_frame* meta;
-
+/*
 	//pthread_mutex_lock(&curlMutex);
 	if(curl == NULL || isBrokenSocket) 
 	{
@@ -523,6 +542,7 @@ bool Tsct_Curl_Ws_Recv(void)
 		sleep(1);
 		return false;
 	}
+	*/
 	ret = curl_ws_recv(curl, curl_ws_recv_buf, sizeof(curl_ws_recv_buf), &rlen, &meta);
 	//pthread_mutex_unlock(&curlMutex);
 	if(ret == CURLE_AGAIN) {
@@ -532,7 +552,7 @@ bool Tsct_Curl_Ws_Recv(void)
 	else if(ret > 0){
 		Clear_Rx_Msg_Buff();
 		CtLogRed("\r\nRecv fail %d\r\n", ret); //Error Code 56 - Connection Lost
-		
+		/*
 		//pthread_mutex_lock(&curlMutex);
 		if(bConnect)
 		{
@@ -541,6 +561,7 @@ bool Tsct_Curl_Ws_Recv(void)
 			curl = NULL;
 		}
 		//pthread_mutex_unlock(&curlMutex);
+		*/
 		bConnect = false;
 		sleep(1);
 		return false;
@@ -553,7 +574,6 @@ bool Tsct_Curl_Ws_Recv(void)
 	// Parse Received Data
 	// ********** Parsing error action
 	Clear_Rx_Msg_Buff();
-	printf("[Tsct_Curl_Ws_Recv] recv_buffer : %s\n");
 	curl_ws_recv_buf[rlen] ='\0';
 	ret = Parse_Data(curl_ws_recv_buf, rlen);
 	if(ret != 0){
@@ -563,40 +583,43 @@ bool Tsct_Curl_Ws_Recv(void)
 
 	if(Rx_Msg.Msg_type == 4)
 	{
-		bErrorWaitFlg = true;
-		++retryCnt;
+		bConnect = false;
+		ServerCallError = true;
 	}
-
-	// for Before Receive BootNotification Response
-	if(GetCpStatus(0) == CP_STATUS_CODE_NONE){
-		// Call Response Data Proc
-		if((Rx_Msg.Msg_type == 3) && (Rx_Msg.Action_Code == CP_REQ_ACTION_CODE_BOOT))
-		{
-			if(bWaitResFlg && (Call_Tx_Msg.UniqueID == Rx_Msg.UniqueID)){
-				bWaitResFlg = false;
-				Rx_CallRes_DataProc(Rx_Msg.Action_Code);
-			}
-		}
-		else if((Rx_Msg.Msg_type == 2) && (Rx_Msg.Action_Code == CS_REQ_ACTION_CODE_DATATRANSFER)) {
-			Rx_Call_DataProc(CS_REQ_ACTION_CODE_DATATRANSFER);
-		}
-	}
-	else{
-		// Call Response Data Proc
-		if(Rx_Msg.Msg_type == 3){
-			if(bWaitResFlg && (Call_Tx_Msg.UniqueID == Rx_Msg.UniqueID))
+	else 
+	{
+		ServerCallError = false;
+		// for Before Receive BootNotification Response
+		if(GetCpStatus(0) == CP_STATUS_CODE_NONE){
+			// Call Response Data Proc
+			if((Rx_Msg.Msg_type == 3) && (Rx_Msg.Action_Code == CP_REQ_ACTION_CODE_BOOT))
 			{
-				bWaitResFlg = false;
-				Rx_CallRes_DataProc(Rx_Msg.Action_Code);
+				if(bWaitResFlg && (Call_Tx_Msg.UniqueID == Rx_Msg.UniqueID)){
+					bWaitResFlg = false;
+					Rx_CallRes_DataProc(Rx_Msg.Action_Code);
+				}
+			}
+			else if((Rx_Msg.Msg_type == 2) && (Rx_Msg.Action_Code == CS_REQ_ACTION_CODE_DATATRANSFER)) {
+				Rx_Call_DataProc(CS_REQ_ACTION_CODE_DATATRANSFER);
 			}
 		}
-		// Call Data Proc
-		else if(Rx_Msg.Msg_type == 2){
-			ret = Rx_Call_DataProc(Rx_Msg.Action_Code);
-			// ************* Rsponse Error to server
-			if(ret)	printf("Non Defined Action Command %d\r\n", Rx_Msg.Action_Code);
-			else	Tsct_Curl_Ws_Trans();
-		} 
+		else{
+			// Call Response Data Proc
+			if(Rx_Msg.Msg_type == 3){
+				if(bWaitResFlg && (Call_Tx_Msg.UniqueID == Rx_Msg.UniqueID))
+				{
+					bWaitResFlg = false;
+					Rx_CallRes_DataProc(Rx_Msg.Action_Code);
+				}
+			}
+			// Call Data Proc
+			else if(Rx_Msg.Msg_type == 2){
+				ret = Rx_Call_DataProc(Rx_Msg.Action_Code);
+				// ************* Rsponse Error to server
+				if(ret)	printf("Non Defined Action Command %d\r\n", Rx_Msg.Action_Code);
+				else	Tsct_Curl_Ws_Trans();
+			} 
+		}
 	}
 }
 
@@ -608,17 +631,7 @@ static void* WSRxThread(void* arg)
 		{
 			Tsct_Curl_Ws_Recv();
 		}
-
-		// if(sWSClientTask == 0)
-		// {
-		// 	CtLogYellow(" create Client thread..\n");
-		// 	pthread_create(&sWSClientTask, NULL, WSClientThread, NULL);
-		// 	pthread_detach(sWSClientTask);
-		// }
-
-		// sleep(1);
-		// sleep(3);
-		usleep(500*1000);
+		usleep(1000*1000);
 	}
 }
 
@@ -888,13 +901,7 @@ void Tsct_Curl_Ws_Trans(void)	// CALL
 	// printf("Start Msg %s\r\n", curl_ws_send_buf);
 
 	// sleep(1);
-		
-	if(bErrorWaitFlg)
-	{
-		sleep(3);
-		bErrorWaitFlg = false;
-	}
-
+	/*
 	//pthread_mutex_lock(&curlMutex);
 	if(curl == NULL || isBrokenSocket) 
 	{
@@ -902,6 +909,7 @@ void Tsct_Curl_Ws_Trans(void)	// CALL
 		sleep(1);
 		return;
 	}
+	*/
 	ret = curl_ws_send(curl, curl_ws_send_buf, strlen(curl_ws_send_buf), &bytes_sent, 0, CURLWS_TEXT);
 	if(ret){
 		CtLogRed("WS send fail %d\r\n", ret);
@@ -988,13 +996,15 @@ static bool OCPP_CALL_Senario(void)
 
 	if(GetCpStatus(0) <= CP_STATUS_CODE_PEND ){
 		if (Check_HB_Time(&tv_1)) {
-
 			MakeDataCmd_Boot();
 			Reset_Time(&tv_1);
 			return true; // data send
 		}
 		else return false;// nothing
-		
+	}
+	else if(Check_Meter_Time()){
+			MakeDataCmd_MeterVal();
+			return true;
 	}
 	else 
 	{
@@ -1032,7 +1042,7 @@ static bool OCPP_CALL_Senario(void)
 
 		if(CsConfigVal.bReqStopTsFlg){
 			CsConfigVal.bReqStopTsFlg = false;
-			Add_MeterVal_Q(false);
+			Add_MeterVal_Q(METER_VAL_TRANS_TYPE);
 			GetDateTime(StopTsConfig.Time_Stamp);
 			StopTsConfig.MeterStop_Val = 0;
 			for(int i = 0; i<4; i++)
@@ -1041,6 +1051,18 @@ static bool OCPP_CALL_Senario(void)
 			memset(&(StopTsConfig.IdTag[16]), '\0', 1);
 		 	MakeDataCmd_StopTs();
 			return true;
+		}
+
+		if(CsConfigVal.bQREventFlg == 1){
+			CsConfigVal.bQREventFlg = 0;
+		 	MakeDataCmd_DataTrans_q1();
+		 	return true;
+		}
+
+		if(CsConfigVal.bQREventFlg == 2){
+		 	CsConfigVal.bQREventFlg = 0;
+			MakeDataCmd_DataTrans_q2();
+		 	return true;
 		}
 /*
 		if((theConfig.chargingstatus & (1<<(MAX_CONECTOR_ID+1))) \
@@ -1096,10 +1118,10 @@ static bool OCPP_CALL_Senario(void)
 			default:
 				break;
 		}
-		
+/*		
 		if(SendVasData(&seccVasDataCnt, TSCT_ERR_CODE_SECCBATDATA))
 			return true;
-
+*/
 		// Diag Status
 		if(CsConfigVal.diagLogReqStep >= DIAG_STAT_UPLOADING)
 		{
@@ -1160,11 +1182,6 @@ static bool OCPP_CALL_Senario(void)
 			return true;
 		}
 
-		if(MeterValQ[0].Meterval_Flg){
-			MakeDataCmd_MeterVal();
-			return true;
-		}
-
 		if(Check_HB_Time(&tv_1)){
 			MakeDataCmd_HB();
 			Reset_Time(&tv_1);
@@ -1192,11 +1209,13 @@ static void NetRun(void)
 
     if(!bConnect){
 //		pthread_mutex_init(&curlMutex, NULL);
-        usleep(200*1000);
-		printf("bConnect false \r\n");
+        //usleep(200*1000);
+		//printf("bConnect false \r\n");
+		usleep(200*1000);
 		WS_Server_connect();		
-		printf("re connect \r\n");
+		//printf("re connect \r\n");
 		//usleep(200*1000);
+		usleep(1000*1000);
     }
     else{
 		ret = OCPP_CALL_Senario();
@@ -1239,25 +1258,25 @@ static void* WSClientThread(void* arg)
 			memcpy(startTsQ.IdTag, shmDataAppInfo.card_no, sizeof(shmDataAppInfo.card_no));
 			memset(&(startTsQ.IdTag[16]), '\0', 1);
 
-			Reset_Time(&tv_2);
-			//SetCpStatus(CP_STATUS_CODE_CHARGING, bDevChannel+1);
+			//Reset_Time(&tv_2);
 		}
 
-		meterValType = Check_Meter_Time(&tv_2);
+		meterValType = Check_Sampled_Time();
 
 		if(meterValType)
 		{
 			printf("[WSClientThread] meterValType = %d\n", meterValType);
 			Add_MeterVal_Q(meterValType);
-			if(meterValType == 1) Reset_Time(&tv_2);
+			//if(meterValType != 0) Reset_Time(&tv_2);
 			StopTsConfig.Connector_No = 1;
-			bConfigSaveFlg = true;
-		}		
+			//bConfigSaveFlg = true;
+		}
 
         if(iteEthGetLink()==0){	
 			Clear_Rx_Msg_Buff();
 			iteEthGetLink_WS = false;
 			bConnect = false;
+			/*
 			//pthread_mutex_lock(&curlMutex);
 			if(curl != NULL)
 			{
@@ -1267,6 +1286,7 @@ static void* WSClientThread(void* arg)
 				curl = NULL;
 			}
 			//pthread_mutex_unlock(&curlMutex);
+			*/
 			usleep(200*1000); 
 			continue;
 		}
@@ -1274,6 +1294,7 @@ static void* WSClientThread(void* arg)
 		if(iteEthGetLink_WS == false){
 			NetworkReset();
 			iteEthGetLink_WS = true;
+			/*
 			//pthread_mutex_lock(&curlMutex);
 			if(curl != NULL)
 			{
@@ -1283,6 +1304,7 @@ static void* WSClientThread(void* arg)
 				curl = NULL;
 			}
 			//pthread_mutex_unlock(&curlMutex);
+			*/
 			usleep(200*1000); 
 			continue;
 		}
@@ -1292,7 +1314,6 @@ static void* WSClientThread(void* arg)
 			bConnect = false;
 		
 		usleep(50*1000);
-		// sleep(1);
     }        
 	sWSClientTask = 0;
 }
@@ -1537,18 +1558,16 @@ void WsClientInit(void)
 	shmDataAppInfo.member_type = 0;	
 
 	// CreateTestVasData();
-
 	Init_Config_Val();
 	Init_CfgKey();
 	// curl_resp_timeout_set(CfgKeyVal[18].CfgKeyDataInt);
-
 	// curl_ws_send_buf = malloc(64*1024 * sizeof(char));	
-
 	// curl_ws_recv_buf = malloc(1024 * sizeof(char));		// GetConfig Max 700 ~ 800 byte
 
-	curl_global_init(CURL_GLOBAL_DEFAULT);
+	//curl_global_init(CURL_GLOBAL_DEFAULT);
 
 	//pthread_mutex_init(&curlMutex, NULL);
+	ServerCallError = true;
 
 	if (sWSRxTask == 0)
 	{

@@ -67,8 +67,8 @@ uint8_t charge_cnt = 0;
 uint8_t vasReadCd = false;
 
 uint16_t vasDataBuf[512];
+bool bPlcConn;
 
-bool bPlcConn = false;
 size_t rebootCnt = 0;
 
 //-----------------------------------------------------------------------
@@ -161,6 +161,11 @@ static uint8_t SendChrgPrm(void)
 	sleep(1);
 
 	return MakeWriteTx(40027, 4);
+}
+
+bool Secc_IsReady(void)
+{
+    return bPlcConn;
 }
 
 uint8_t InitSecc(void)
@@ -276,6 +281,7 @@ uint8_t InitSecc(void)
 			if(!SeccRxData.vasEnable)
 				SeccInitStep = SECC_INIT_STEP_VASREQ;
 			else {
+				bPlcConn = true;
 				CtLogGreen("Success Secc Initialize1111111111111!!");
 				SeccInitStep = SECC_INIT_STEP_DONE;
 			}
@@ -600,7 +606,6 @@ static void* SeccRS232ReqTask(void* arg)
 					CtLogYellow("Didn't Receive Resp [cmd : %lu, cnt : %d]", Led2Bed16(SeccModbusReadTx.ReqAddr), rebootCnt);
 
 				vasReadCd = false;
-
 				bPlcConn = false;
 				++rebootCnt;
 
@@ -682,6 +687,7 @@ static void* SeccRS232ReqTask(void* arg)
 
 				memcpy(request, &SeccModbusReadTx.Id01, 8);
 				write(SECC_DEV, request, 8);
+				//DumpBuffer("[secc]send", request, 8);
 
 				if(Led2Bed16(SeccModbusReadTx.ReqAddr) == 30061)
 						DumpBuffer("PLC Modem Reqeust", request, 8);
@@ -703,7 +709,7 @@ static void* SeccRS232ReqTask(void* arg)
 
 		// printf("\r\n[%d]\r\n", ret);
 
-		if(rebootCnt < 100)	
+		if(rebootCnt < 10)	
 			usleep(SECC_READ_ID_TASK_DELAY * 1000);
 		else
 		{
@@ -1204,13 +1210,13 @@ static void* SeccRS232ReadTask(void* arg)
 
 		if(bufsize) {
 
-			// DumpBuffer("Check Rx Data", buffer, bufsize);
+			//DumpBuffer("[secc]read", buffer, bufsize);
 
 			ret_b = ValidSecc(buffer, pars_buf, bufsize);
 
 			if(ret_b){
 				// DumpBuffer("Rx Data", pars_buf, )
-				bPlcConn = true;
+				//bPlcConn = true;
 				rebootCnt = 0;
 				PlcRespWaitCnt = 0;
 				if(pars_buf[1] == FC_READ){
@@ -1251,7 +1257,7 @@ static void* SeccRS232ReadTask(void* arg)
 
 void SeccInit(void)
 {
-
+	bPlcConn = false;
 	ithGpioSetMode(GPIO_PLC_PWR_RELAY_CTL, ITH_GPIO_MODE0);
 	ithGpioSetOut(GPIO_PLC_PWR_RELAY_CTL);
 	ithGpioClear(GPIO_PLC_PWR_RELAY_CTL);	

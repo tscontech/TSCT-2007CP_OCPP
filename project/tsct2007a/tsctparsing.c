@@ -403,7 +403,7 @@ uint8_t Parse_Data(char* curl_ws_recv_buf, size_t rlen)
         printf("[Parse_Data] Header Parsing Error\r\n");
         return true;
     }
-    if(Rx_Msg.UniqueID == DATATRANS_UniqueID)
+    if(Rx_Msg.Msg_type == 3 && Rx_Msg.UniqueID == DATATRANS_UniqueID)
     {
         DATATRANS_UniqueID = 0;
         memcpy(Rx_Msg.Payload[0].DATATRANS_data , curl_ws_recv_buf, rlen);
