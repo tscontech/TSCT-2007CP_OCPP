@@ -207,8 +207,7 @@ static void WHMListenerOnCharge(int ch, float current, float volt, uint32_t ener
 
 static void TimeOutChargeStartWait(void)
 {	
-	unsigned int zero_var = 0;
-		
+	ShowWhmErrorDialogBox(ERR_CHARGE);
 	GotoNextLayerOnCharge();
 }
 
@@ -407,8 +406,8 @@ static void* sChargeMonitoringTaskFuntion(void* arg)
 
 		if(	SeccTxData.status_fault & (1<<SECC_STAT_STOP)) {
 			CtLogRed("Charge Stop by SECC [%lu]", SeccTxData.status_fault);
-			ShowWhmErrorDialogBox(ERR_CHARGE);
-			//TSCT_ChargingStop();
+			//ShowWhmErrorDialogBox(ERR_CHARGE);
+			TSCT_ChargingStop();
 		}		
 
 		if(theConfig.OperationMode == OP_FREE_MODE \
@@ -601,19 +600,15 @@ static void CPListenerOnCharge(int ch, unsigned char nAdcValue, CPVoltage voltag
 		    break;
 
 		case CP_VOLTAGE_12V:
-			// if(CsConfigVal.StopTransactionOnEVSideDisconnect){
 			if(CfgKeyVal[13].CfgKeyDataInt){
 				ScreenOnScenario();
 				chargecomp_stop = false;			
 				shmDataAppInfo.app_order = APP_ORDER_CHARGING_STOP;
 				shmDataAppInfo.charge_comp_status = END_UNPLUG;
-				// if(sCharging)	{
-					CtLogRed("Charge Stop by Disconnect");
-					StopCharge();
-					UpdateStopGui(); 
-					sleep(1); ///mod
-				// }
-				GotoNextLayerOnCharge();
+				CtLogRed("Charge Stop by Disconnect");
+				StopCharge();
+				UpdateStopGui(); 
+				sleep(1); ///mod
 			}
 			else{
 				// if (sCharging){ 	
@@ -624,6 +619,12 @@ static void CPListenerOnCharge(int ch, unsigned char nAdcValue, CPVoltage voltag
 						SetCpStatus(CP_STATUS_CODE_SUSPENDEDEV,bDevChannel+1);
 					}
 				// }
+			}
+			if(sCharging){
+				GotoNextLayerOnCharge();
+			}
+			else{
+				TimeOutChargeStartWait();
 			}
 			break;
 			
