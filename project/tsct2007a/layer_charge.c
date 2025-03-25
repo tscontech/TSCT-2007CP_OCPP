@@ -51,6 +51,7 @@ static ITUText* sEnergyUsedText;
 static ITUText* sChargeTimeText;
 static ITUText* sUnitPricetxt;
 static ITUText* susertxt;
+static ITUText* sMemberTypetxt;
 
 //static ITUText* seffectiveCurrenttxt1;
 static ITUText* sEffectiveCurrentText1;
@@ -384,12 +385,13 @@ static void* sChargeMonitoringTaskFuntion(void* arg)
 
 			RequestPollingStart();
 		}
+		/*
 		if(ServerCallError)
 		{
 			StopCharge();
 			ituLayerGoto(ituSceneFindWidget(&theScene, "ch2FinishLayer"));
 		}
-
+*/
 		if(startTsQ.faultChargFlg)
 		{
 			// shmDataAppInfo.charge_comp_status = END_CARD;
@@ -421,7 +423,7 @@ static void* sChargeMonitoringTaskFuntion(void* arg)
 		if(CsConfigVal.bReqRmtStopTSFlg){
 			// CsConfigVal.bReqRmtStopTSFlg = false;
 			TSCT_ChargingStop();
-		}			
+		}	
 	}
 	sChargeMonitoringTask = 0;
 }
@@ -808,6 +810,7 @@ bool ChargeOnEnter(ITUWidget* widget, char* param)
 		
 		sEffectiveCurrentText1 = ituSceneFindWidget(&theScene, "effectiveCurrentText1");
 		assert(sEffectiveCurrentText1);
+		sMemberTypetxt = ituSceneFindWidget(&theScene, "MemberTypetxt");
 						
 	}
 	iUnitprice = charge_time_price(0);
@@ -829,6 +832,28 @@ bool ChargeOnEnter(ITUWidget* widget, char* param)
 	sprintf(buf, "%.2f kWh",(float)charge_watt/100.0f); ///mod
 	ituTextSetString(sEnergyUsedText, buf);
 	ituTextSetString(sChargeTimeText, "00:00");	
+
+	if(shmDataAppInfo.member_type == MEM_MEBER)
+	{
+		ituTextSetString(sMemberTypetxt, "태성콘텍 회원");
+	}
+	else if (shmDataAppInfo.member_type == MEM_ROAM)
+	{
+		ituTextSetString(sMemberTypetxt, "로밍 회원");
+	}
+	else if (shmDataAppInfo.member_type == MEM_GUEST)
+	{
+		ituTextSetString(sMemberTypetxt, "비회원");
+	}
+	else if (shmDataAppInfo.member_type == MEM_VIP)
+	{
+		ituTextSetString(sMemberTypetxt, "VIP 회원");
+	}
+	else if (shmDataAppInfo.member_type == MEM_NON)
+	{
+		ituTextSetString(sMemberTypetxt, "");
+	}
+	
 	
 	ControlPilotSetListener(bDevChannel, CPListenerOnCharge);
 

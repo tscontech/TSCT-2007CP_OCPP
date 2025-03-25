@@ -180,7 +180,11 @@ bool MainOnEnter(ITUWidget* widget, char* param)
 	ChagerInitStatus(CH1);			
 	ChagerInitStatus(CH2);
 	shmDataAppInfo.app_order = APP_ORDER_WAIT;
+	shmDataAppInfo.member_type = MEM_NON;
+	shmDataAppInfo.finalAmt = 0;
+	shmDataAppInfo.chargeAmt_Check = AMT_NON;
 	shmDataIfInfo.card_auth = CARD_AUTH_WAIT;
+	
 
 	memset(CsConfigVal.parentId, '\0', sizeof(CsConfigVal.parentId));
 

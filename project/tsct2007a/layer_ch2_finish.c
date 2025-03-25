@@ -40,6 +40,9 @@ static CPVoltage sVoltage = CP_VOLTAGE_UNKNOWN;
 extern int charge_price;
 extern uint32_t charge_watt;
 
+static pthread_t sFinishMonitoringTask;
+static bool sFinishMonitoring = false;
+
 //-----------------------------------------------------------------------
 // Function
 //-----------------------------------------------------------------------
@@ -51,13 +54,30 @@ static void CPListenerOnFinish(int ch, unsigned char nAdcValue, CPVoltage voltag
 	switch(sVoltage)
 	{
 		case CP_VOLTAGE_12V:
-			sleep(2);			// for Send CP finish status when disconnect cable
+			sleep(1);			// for Send CP finish status when disconnect cable
 			GotoStartLayer();	
 			break;
 			
 		case CP_VOLTAGE_9V:
 		case CP_VOLTAGE_6V:
 			break;			
+	}
+}
+
+static void* sFinishMonitoringTaskFuntion(void* arg)
+{
+	while(sFinishMonitoring)
+	{
+		sleep(1);
+		if(shmDataAppInfo.chargeAmt_Check == AMT_FINAL)
+		{
+			shmDataAppInfo.chargeAmt_Check = AMT_NON;
+			char buf[32] = {" ",};
+			memset(buf, 0, sizeof(buf));
+			sprintf(buf, "%d 원", shmDataAppInfo.finalAmt);
+			printf("[충전 종료 화면]충전 단가: %d\n", shmDataAppInfo.finalAmt);
+			ituTextSetString(sChargePriceText, buf);
+		}
 	}
 }
 
@@ -108,7 +128,8 @@ bool Ch2FinishOnEnter(ITUWidget* widget, char* param)
 	ituTextSetString(sChargeTimeText, buf);		
 	
 	memset(buf, 0, sizeof(buf));
-	sprintf(buf, "%d 원", charge_price/100);
+	//sprintf(buf, "%d 원", charge_price/100);
+	sprintf(buf, "확인중");
 	ituTextSetString(sChargePriceText, buf);
 
 	if(startTsQ.faultChargFlg && CfgKeyVal[14].CfgKeyDataInt)
@@ -121,6 +142,13 @@ bool Ch2FinishOnEnter(ITUWidget* widget, char* param)
 	}
 
 	CsConfigVal.bReqStopTsFlg = true;
+
+	if (sFinishMonitoringTask == 0)
+	{
+		sFinishMonitoring = true;
+		pthread_create(&sFinishMonitoringTask, NULL, sFinishMonitoringTaskFuntion, NULL);
+		pthread_detach(sFinishMonitoringTask);
+	}
 
 	sleep(1);	//for Send CP FInish STatus msg	to CSMS
 
@@ -135,6 +163,7 @@ bool Ch2FinishOnLeave(ITUWidget* widget, char* param)
 	AudioStop();
 	TopStopStepAnimation();	
 	// CsConfigVal.bReqStopTsFlg = false;
+	//sFinishMonitoring = false;
 	CsConfigVal.bReqRmtStopTSFlg = false;
     return true;
 }

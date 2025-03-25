@@ -184,6 +184,8 @@ typedef struct {
 	uint8_t trigMsgCntrId;
 	char diagLogUrl[100];
 	DIAG_STAT diagLogReqStep;
+	bool bReqMemberFlg;	
+	bool bReqChargeAmtFlg;
 } CS_CONFIG_VAL;
 
 CS_CONFIG_VAL CsConfigVal;

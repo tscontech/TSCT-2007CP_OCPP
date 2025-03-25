@@ -1034,6 +1034,14 @@ static bool OCPP_CALL_Senario(void)
 			return true;
 		}
 
+		if(CsConfigVal.bReqMemberFlg)
+		{
+			CsConfigVal.bReqMemberFlg = false;
+			sleep(1);
+			MakeDataCmd_DataTrans_mbrUntpc();
+			return true;
+		}
+
 		// CP Status : Prepare
 		if(startTsQ.reqStartTsFlg){
 			MakeDataCmd_StartTs();
@@ -1050,6 +1058,12 @@ static bool OCPP_CALL_Senario(void)
 			memcpy(StopTsConfig.IdTag, shmDataAppInfo.card_no, sizeof(shmDataAppInfo.card_no));
 			memset(&(StopTsConfig.IdTag[16]), '\0', 1);
 		 	MakeDataCmd_StopTs();
+			return true;
+		}
+		if(CsConfigVal.bReqChargeAmtFlg)
+		{
+			CsConfigVal.bReqChargeAmtFlg = false;
+			MakeDataCmd_DataTrans_chargeAmt();
 			return true;
 		}
 

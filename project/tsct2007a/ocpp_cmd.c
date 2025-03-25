@@ -56,6 +56,157 @@ static uint64_t String2Integer(char* str)
 	return ret;
 }
 
+static char DataTrans_name[60];
+static char DataTrans_contants[300];
+
+struct DataTrans
+{
+	char DataTrans_name[60];
+	char DataTrans_contants[300];
+};
+
+static int Cash_index=0;
+static struct DataTrans Cash[10];
+
+static void Parse_DataTrans(char* buf, uint16_t* index)
+{
+	uint8_t parsing_step=0, index_temp=0, Cash_index_temp=0;
+	size_t rlen = strlen(buf);
+
+	for((*index)++; (*index) < rlen; (*index)++)
+	{
+		if(parsing_step == 0)
+		{
+			if(buf[*index] == '\"')
+			{
+				parsing_step = 1;
+			}
+		}
+		else if(parsing_step == 1)
+		{
+			if(buf[*index] == '\\')
+			{
+				parsing_step = 2;
+			}
+			else
+			{
+				if((!strcmp(DataTrans_name, "messageId")) && (!strcmp(DataTrans_contants, "j1")))
+				{
+					Cash[Cash_index_temp].DataTrans_name[index_temp] = buf[*index];
+					index_temp++;
+
+				//	 printf("Parse_DataTrans : cash_name [%d] : %s \n", Cash_index_temp, Cash[Cash_index_temp].DataTrans_name);
+				}
+				else if((!strcmp(DataTrans_name, "messageId")) && (!strcmp(DataTrans_contants, "mbrUntpc")))
+				{
+					Cash[Cash_index_temp].DataTrans_name[index_temp] = buf[*index];
+					index_temp++;
+
+				//	 printf("Parse_DataTrans : cash_name [%d] : %s \n", Cash_index_temp, Cash[Cash_index_temp].DataTrans_name);
+				}
+				else
+				{
+					DataTrans_name[index_temp] = buf[*index];
+					index_temp++;
+				}
+
+				// printf("Parse_DataTrans : 1 : %s \n", DataTrans_name);
+			}
+		}
+		else if(parsing_step == 2)
+		{
+			if((!strcmp(DataTrans_name, "messageId")) && (!strcmp(DataTrans_contants, "j1")))
+			{
+				if(!strcmp(Cash[Cash_index_temp].DataTrans_name, "memberType") || !strcmp(Cash[Cash_index_temp].DataTrans_name, "unitPrice"))
+				{
+					parsing_step = 3;
+					index_temp = 0;
+				}
+				else
+				{
+					memset(Cash[Cash_index_temp].DataTrans_name, 0x00, sizeof(Cash[Cash_index_temp].DataTrans_name));
+					parsing_step = 0;
+					index_temp = 0;
+				}
+			}
+			else if((!strcmp(DataTrans_name, "messageId")) && (!strcmp(DataTrans_contants, "mbrUntpc")))
+			{
+				printf("Parse_DataTrans : 2 : %s \n", DataTrans_name);
+				if(!strcmp(Cash[Cash_index_temp].DataTrans_name, "mbrType") || !strcmp(Cash[Cash_index_temp].DataTrans_name, "csoName")|| !strcmp(Cash[Cash_index_temp].DataTrans_name, "untpc"))
+				{
+					parsing_step = 3;
+					index_temp = 0;
+				}
+				else
+				{
+					memset(Cash[Cash_index_temp].DataTrans_name, 0x00, sizeof(Cash[Cash_index_temp].DataTrans_name));
+					parsing_step = 0;
+					index_temp = 0;
+				}
+			}
+			else if(buf[*index] == '\\')
+			{
+				parsing_step = 3;
+				index_temp = 0;
+			}
+		}
+		else if(parsing_step == 3)
+		{
+			if(buf[*index] == '\"')
+			{
+				parsing_step = 4;
+				index_temp = 0;
+			}
+		}
+		else if(parsing_step == 4)
+		{
+			if(buf[*index] == '\\')
+			{
+				parsing_step = 5;
+				index_temp = 0;
+				// break;
+			}
+			else
+			{
+				if((!strcmp(DataTrans_name, "messageId")) && (!strcmp(DataTrans_contants, "j1")))
+				{
+					Cash[Cash_index_temp].DataTrans_contants[index_temp] = buf[*index];
+					index_temp++;
+
+				//	 printf("Parse_DataTrans : cash_contants [%d] : %s \n", Cash_index_temp, Cash[Cash_index_temp].DataTrans_contants);
+				}
+				else
+				{
+					DataTrans_contants[index_temp] = buf[*index];
+					index_temp++;
+				}
+
+				 printf("Parse_DataTrans : 4 : %s \n", DataTrans_contants);
+			}
+		}
+		else if(parsing_step == 5)
+		{
+			if(buf[*index] == '\"')
+			{
+				parsing_step = 0;
+				index_temp = 0;
+
+				if(!strcmp(Cash[Cash_index_temp].DataTrans_name, "memberType") || !strcmp(Cash[Cash_index_temp].DataTrans_name, "unitPrice"))
+				{
+					Cash_index_temp++;
+				}
+			}
+		}
+	}
+
+	printf("Parse_DataTrans : case : messageId only or END.. \n");
+	if((!strcmp(DataTrans_name, "messageId")) && (!strcmp(DataTrans_contants, "j1")) && (Cash_index_temp != 0))
+	{
+		printf("Parse_DataTrans : case : messageId j1.. \n");
+		Cash_index = Cash_index_temp;
+	}
+}
+
 void MakeCallRes(RES_TYPE ret)
 {
 	Tx_Msg.Payload_len = 1;
@@ -152,8 +303,11 @@ void DataProcCmd_Auth(void)
 			if(!strcmp(Rx_Msg.Payload[0].sub_Payload[i].property_name, "status")){	// Allow
 				if(!strcmp(Rx_Msg.Payload[0].sub_Payload[i].property_contants, "Accepted"))
 				{
-					shmDataIfInfo.card_auth = CARD_AUTH_OK;
-				//	printf("[DataProcCmd_Auth] Card Auth Pass\r\n");
+					//shmDataIfInfo.card_auth = CARD_AUTH_OK;
+					printf("[DataProcCmd_Auth] Card Auth Pass\r\n");
+					CsConfigVal.bReqMemberFlg = true;
+//					MakeDataCmd_DataTrans_mbrUntpc();
+					
 				}
 				else {
 					shmDataAppInfo.app_order = APP_ORDER_AUTH_METHOD;
@@ -217,9 +371,9 @@ void DataProcCmd_Boot(void)
 	{
 		if(!strcmp(Rx_Msg.Payload[i].property_name, "interval"))
 		{
-			CfgKeyVal[5].CfgKeyDataInt = 30;//String2Integer(Rx_Msg.Payload[i].property_contants);
+			CfgKeyVal[5].CfgKeyDataInt = 50;//30;//String2Integer(Rx_Msg.Payload[i].property_contants);
 			if(CfgKeyVal[5].CfgKeyDataInt==0)
-				CfgKeyVal[5].CfgKeyDataInt = 30;	// Default 10sec
+				CfgKeyVal[5].CfgKeyDataInt = 50;	// Default 10sec
 		}
 		else if(!strcmp(Rx_Msg.Payload[i].property_name, "status"))
 		{
@@ -349,30 +503,261 @@ void TransUtc2Date(uint32_t utcVal, char* rstBuf) {
 
 void DataProcCmd_DataTransCp(void)
 {
-	char messageId[2];
+	char messageId_tmp[12];
+	memset(messageId_tmp, 0x00, sizeof(messageId_tmp));
+	char messageId[12];
 	memset(messageId, 0x00, sizeof(messageId));
-	char unitPriceData_tmp[8];
-	memset(unitPriceData_tmp, 0x00, sizeof(unitPriceData_tmp));
-	char unitPriceData[8];
-	memset(unitPriceData, 0x00, sizeof(unitPriceData));
 	
+	//printf("DataProcCmd_DataTransCp:  %s\n", Rx_Msg.Payload[0].DATATRANS_data);
 	if(strstr(Rx_Msg.Payload[0].DATATRANS_data, "messageId"))
 	{
 		int n = strstr(Rx_Msg.Payload[0].DATATRANS_data, "messageId") - Rx_Msg.Payload[0].DATATRANS_data;
-		memcpy(messageId, &Rx_Msg.Payload[0].DATATRANS_data[n+14], 2);
+		memcpy(messageId_tmp, &Rx_Msg.Payload[0].DATATRANS_data[n+14], 12);
+		n = strstr(messageId_tmp, "\"") - messageId_tmp;
+		strncpy(messageId, &messageId_tmp[0], n -1);
 
 		if(strcmp(messageId, "j1") == 0)
 		{
+			char unitPriceData_tmp[8];
+			memset(unitPriceData_tmp, 0x00, sizeof(unitPriceData_tmp));
+			char unitPriceData[8];
+			memset(unitPriceData, 0x00, sizeof(unitPriceData));
+
 			n = strstr(Rx_Msg.Payload[0].DATATRANS_data, "unitPrice") - Rx_Msg.Payload[0].DATATRANS_data;
 			strncpy(unitPriceData_tmp, &Rx_Msg.Payload[0].DATATRANS_data[n+14], 8);
 			n = strstr(unitPriceData_tmp, "\"") - unitPriceData_tmp;
 			strncpy(unitPriceData, &unitPriceData_tmp[0], n -1);
-			CtLogYellow("unitPriceData: %s", unitPriceData);
 			shmDataIfInfo.OCPP_iUnitprice = atof(unitPriceData);
-			printf("충전 단가 금액: %f\n", shmDataIfInfo.OCPP_iUnitprice);
+			printf("j1 충전 단가 금액: %f\n", shmDataIfInfo.OCPP_iUnitprice);
+		}
+		else if(strcmp(messageId, "mbrUntpc") == 0)
+		{
+			char status_tmp[10];
+			memset(status_tmp, 0x00, sizeof(status_tmp));
+			char status_Cp[10];
+			memset(status_Cp, 0x00, sizeof(status_Cp));
+
+			n = strstr(Rx_Msg.Payload[0].DATATRANS_data, "status") - Rx_Msg.Payload[0].DATATRANS_data;
+			strncpy(status_tmp, &Rx_Msg.Payload[0].DATATRANS_data[n+9], 8);
+			strncpy(status_Cp, &status_tmp[0], n -1);
+			printf("mbrUntpc status: %s\n", status_Cp);
+
+			if(strcmp(status_Cp, "Accepted") == 0)
+			{
+				char mbrType_tmp[10];
+				memset(mbrType_tmp, 0x00, sizeof(mbrType_tmp));
+				char mbrType[10];
+				memset(mbrType, 0x00, sizeof(mbrType));
+				char csoName_tmp[8];
+				memset(csoName_tmp, 0x00, sizeof(csoName_tmp));
+				char csoName[8];
+				memset(csoName, 0x00, sizeof(csoName));
+				char untpc_tmp[8];
+				memset(untpc_tmp, 0x00, sizeof(untpc_tmp));
+				char unitPriceData[8];
+				memset(unitPriceData, 0x00, sizeof(unitPriceData));
+				
+				n = strstr(Rx_Msg.Payload[0].DATATRANS_data, "mbrType") - Rx_Msg.Payload[0].DATATRANS_data;
+				strncpy(mbrType_tmp, &Rx_Msg.Payload[0].DATATRANS_data[n+12], 10);
+				//printf("mbrUntpc - data : %s, %d\n", mbrType_tmp, n);
+				n = strstr(mbrType_tmp, "\"") - mbrType_tmp;
+				strncpy(mbrType, &mbrType_tmp[0], n -1);
+				//printf("mbrUntpc - data 1 : %s\n", mbrType);
+				//회원 정보 shmDataAppInfo.member_type
+				if(strcmp(mbrType, "member") == 0)
+				{
+					shmDataAppInfo.member_type = MEM_MEBER;
+				}
+				else if(strcmp(mbrType, "roam") == 0)
+				{
+					shmDataAppInfo.member_type = MEM_ROAM;
+				}
+				else if(strcmp(mbrType, "guest") == 0)
+				{
+					shmDataAppInfo.member_type = MEM_GUEST;
+				}
+				else if(strcmp(mbrType, "vip") == 0)
+				{
+					shmDataAppInfo.member_type = MEM_VIP;
+				}
+				else 
+				{
+					shmDataAppInfo.member_type = MEM_NON;
+				}
+/*	
+				n = strstr(Rx_Msg.Payload[0].DATATRANS_data, "csoName") - Rx_Msg.Payload[0].DATATRANS_data;
+				strncpy(csoName_tmp, &Rx_Msg.Payload[0].DATATRANS_data[n+12], 8);
+				n = strstr(csoName_tmp, "\"") - csoName_tmp;
+				strncpy(csoName, &csoName_tmp[0], n -1);
+				printf("csoName - data : %s", csoName);
+				//사업자 정보보
+*/	
+				n = strstr(Rx_Msg.Payload[0].DATATRANS_data, "untpc") - Rx_Msg.Payload[0].DATATRANS_data;
+				strncpy(untpc_tmp, &Rx_Msg.Payload[0].DATATRANS_data[n+10], 8);
+				n = strstr(untpc_tmp, "\"") - untpc_tmp;
+				strncpy(unitPriceData, &untpc_tmp[0], n -1);
+				shmDataIfInfo.OCPP_iUnitprice = (float)(atof(unitPriceData));
+				printf("mbrUntpc 충전 단가 금액: %f\n", shmDataIfInfo.OCPP_iUnitprice);
+				//회원 단가가
+				shmDataIfInfo.card_auth = CARD_AUTH_OK;
+			}
+			else 
+			{
+				printf("mbrUntpc status: CARD_AUTH_FAILD\n");
+				shmDataIfInfo.card_auth = CARD_AUTH_FAILD;
+			}
+
+		}
+		else if(strcmp(messageId, "chargeAmt") == 0)
+		{
+			char finalAmt_tmp[8];
+			memset(finalAmt_tmp, 0x00, sizeof(finalAmt_tmp));
+			char finalAmt[8];
+			memset(finalAmt, 0x00, sizeof(finalAmt));
+			char billAmt_tmp[8];
+			memset(billAmt_tmp, 0x00, sizeof(billAmt_tmp));
+			char billAmt[8];
+			memset(billAmt, 0x00, sizeof(billAmt));
+			char remainPoint_tmp[15];
+			memset(remainPoint_tmp, 0x00, sizeof(remainPoint_tmp));
+			char remainPoint[15];
+			memset(remainPoint, 0x00, sizeof(remainPoint));
+			char usedPoint_tmp[15];
+			memset(usedPoint_tmp, 0x00, sizeof(usedPoint_tmp));
+			char usedPoint[15];
+			memset(usedPoint, 0x00, sizeof(usedPoint));
+
+			n = strstr(Rx_Msg.Payload[0].DATATRANS_data, "finalAmt") - Rx_Msg.Payload[0].DATATRANS_data;
+			strncpy(finalAmt_tmp, &Rx_Msg.Payload[0].DATATRANS_data[n+13], 8);
+			n = strstr(finalAmt_tmp, "\"") - finalAmt_tmp;
+			strncpy(finalAmt, &finalAmt_tmp[0], n -1);
+			//printf("chargeAmt finalAmt: %s\n", finalAmt);
+			shmDataAppInfo.finalAmt = atoi(finalAmt);
+			//printf("shmDataAppInfo.finalAmt: %d\n", shmDataAppInfo.finalAmt);
+
+			n = strstr(Rx_Msg.Payload[0].DATATRANS_data, "billAmt") - Rx_Msg.Payload[0].DATATRANS_data;
+			strncpy(billAmt_tmp, &Rx_Msg.Payload[0].DATATRANS_data[n+12], 8);
+			n = strstr(billAmt_tmp, "\"") - billAmt_tmp;
+			strncpy(billAmt, &billAmt_tmp[0], n -1);
+			shmDataAppInfo.billAmt = atoi(billAmt);
+
+			n = strstr(Rx_Msg.Payload[0].DATATRANS_data, "usedPoint") - Rx_Msg.Payload[0].DATATRANS_data;
+			strncpy(usedPoint_tmp, &Rx_Msg.Payload[0].DATATRANS_data[n+14], 15);
+			n = strstr(usedPoint_tmp, "\"") - usedPoint_tmp;
+			strncpy(usedPoint, &usedPoint_tmp[0], n -1);
+			shmDataAppInfo.usedPoint = atoi(usedPoint);
+
+			n = strstr(Rx_Msg.Payload[0].DATATRANS_data, "remainPoint") - Rx_Msg.Payload[0].DATATRANS_data;
+			strncpy(remainPoint_tmp, &Rx_Msg.Payload[0].DATATRANS_data[n+16], 15);
+			n = strstr(remainPoint_tmp, "\"") - remainPoint_tmp;
+			strncpy(remainPoint, &remainPoint_tmp[0], n -1);
+			shmDataAppInfo.remainPoint = atoi(remainPoint);
+			
+			shmDataAppInfo.chargeAmt_Check = AMT_FINAL;
 		}
 	}
 	memset(Rx_Msg.Payload[0].DATATRANS_data, 0x00, sizeof(Rx_Msg.Payload[0].DATATRANS_data));
+	
+	#if 0
+	uint16_t index=0;
+	bool DataTransCp_Flag=false;
+	unsigned int unit_cost_index=0;
+	
+	for(int i=0; i<=Rx_Msg.Payload_len; i++)
+	{
+		if(!strcmp(Rx_Msg.Payload[i].property_name, "status"))
+		{
+			if(!strcmp(Rx_Msg.Payload[i].property_contants, OCPP_STATUS_ACCEPT))
+			{
+				DataTransCp_Flag = true;
+			}
+		}
+
+		if(DataTransCp_Flag)
+		{
+			if(!strcmp(Rx_Msg.Payload[i].property_name, "data"))
+			{
+				printf("1. DataProcCmd_DataTransCp : data : Rx_Msg.Payload_len [%d] \n", i);
+
+				Parse_DataTrans(Rx_Msg.Payload[i].DATATRANS_data, &index);
+
+				if((!strcmp(DataTrans_name, "messageId")) && (!strcmp(DataTrans_contants, "cpSts")))
+				{
+					printf("DataProcCmd_DataTransCp : cpSts \n");
+				}
+				else if((!strcmp(DataTrans_name, "messageId")) && (!strcmp(DataTrans_contants, "j1")))
+				{
+					printf("DataProcCmd_DataTransCp : j1 \n");
+
+					for(int i=0; i<=Cash_index; i++)
+					{
+						// printf("DataProcCmd_DataTransCp : j1(Cash) : %s : %s \n", Cash[i].DataTrans_name, Cash[i].DataTrans_contants);
+
+						if(!strcmp(Cash[i].DataTrans_name, "memberType"))
+						{
+							unit_cost_index = (unsigned int)(atoi(Cash[i].DataTrans_contants)) - 1;
+						}
+						else if(!strcmp(Cash[i].DataTrans_name, "unitPrice"))
+						{
+							shmDataIfInfo.OCPP_iUnitprice = (atof(Cash[i].DataTrans_contants));
+							//CsConfigVal.unit_cost[unit_cost_index] = (float)(atof(Cash[i].DataTrans_contants));
+							// printf("DataProcCmd_DataTransCp : j1(unit_cost[%d]) : %.2f \n", unit_cost_index, CsConfigVal.unit_cost[unit_cost_index]);
+						}
+					}
+
+					//shmDataIfInfo.connect_status = (unsigned char)SVR_CONNECT;
+					//SvrConSet(true);
+				}
+				else if((!strcmp(DataTrans_name, "messageId")) && (!strcmp(DataTrans_contants, "q1")))
+				{
+					printf("DataProcCmd_DataTransCp : q1 \n");
+					//QRopen_Flag = true;
+				}
+				else if((!strcmp(DataTrans_name, "messageId")) && (!strcmp(DataTrans_contants, "q2")))
+				{
+					printf("DataProcCmd_DataTransCp : q2 \n");
+				}
+				else if((!strcmp(DataTrans_name, "messageId")) && (!strcmp(DataTrans_contants, "v1")))
+				{
+					printf("DataProcCmd_DataTransCp : v1 \n");
+				}
+				else if((!strcmp(DataTrans_name, "messageId")) && (!strcmp(DataTrans_contants, "v2")))
+				{
+					printf("DataProcCmd_DataTransCp : v2 \n");
+				}
+				else if((!strcmp(DataTrans_name, "messageId")) && (!strcmp(DataTrans_contants, "mbrUntpc")))
+				{
+					printf("DataProcCmd_DataTransCp : mbrUntpc \n");
+					for(int i=0; i<=Cash_index; i++)
+					{
+						// printf("DataProcCmd_DataTransCp : j1(Cash) : %s : %s \n", Cash[i].DataTrans_name, Cash[i].DataTrans_contants);
+
+						if(!strcmp(Cash[i].DataTrans_name, "mbrType"))
+						{
+							printf("mbrType - data1 : %s", Cash[i].DataTrans_contants);
+						}
+						else if(!strcmp(Cash[i].DataTrans_name, "csoName"))
+						{
+							printf("csoName - data1 : %s", Cash[i].DataTrans_contants);
+						}
+						else if(!strcmp(Cash[i].DataTrans_name, "untpc"))
+						{
+							shmDataIfInfo.OCPP_iUnitprice = (atof(Cash[i].DataTrans_contants));
+							shmDataIfInfo.card_auth = CARD_AUTH_OK;
+						}
+					}
+				}
+				else if((!strcmp(DataTrans_name, "messageId")) && (!strcmp(DataTrans_contants, "chargeAmt")))
+				{
+					printf("DataProcCmd_DataTransCp : chargeAmt \n");
+				}
+			}
+		}
+	}
+
+	memset(DataTrans_name, 0x00, sizeof(DataTrans_name));
+	memset(DataTrans_contants, 0x00, sizeof(DataTrans_contants));
+	#endif
 }
 
 
@@ -972,6 +1357,7 @@ void MakeDataCmd_StopTs(void)
 		Tx_Msg.Payload[Tx_Msg.Payload_len].data_type = TYPE_CODE_STR;
 		Tx_Msg.Payload_len++;
 	}
+	/*
 	else if(shmDataAppInfo.charge_comp_status == END_SERVER){
 		memset(Tx_Msg.Payload[Tx_Msg.Payload_len].property_name, 0x00, sizeof(Tx_Msg.Payload[Tx_Msg.Payload_len].property_name));
 		memcpy(Tx_Msg.Payload[Tx_Msg.Payload_len].property_name, "reason",sizeof("reason"));
@@ -985,12 +1371,24 @@ void MakeDataCmd_StopTs(void)
 		Tx_Msg.Payload[Tx_Msg.Payload_len].data_type = TYPE_CODE_STR;
 		Tx_Msg.Payload_len++;
 	}
+		*/
 	else if(shmDataAppInfo.charge_comp_status == END_BTN || shmDataAppInfo.charge_comp_status == END_CARD){
 		memset(Tx_Msg.Payload[Tx_Msg.Payload_len].property_name, 0x00, sizeof(Tx_Msg.Payload[Tx_Msg.Payload_len].property_name));
 		memcpy(Tx_Msg.Payload[Tx_Msg.Payload_len].property_name, "reason",sizeof("reason"));
 
 		memset(Tx_Msg.Payload[Tx_Msg.Payload_len].property_contants, 0x00, sizeof(Tx_Msg.Payload[Tx_Msg.Payload_len].property_contants));
 		memcpy(Tx_Msg.Payload[Tx_Msg.Payload_len].property_contants, "Local",sizeof("Local"));
+
+		Tx_Msg.Payload[Tx_Msg.Payload_len].data_type = TYPE_CODE_STR;
+		Tx_Msg.Payload_len++;
+	}
+	else if(StopTsConfig.Stop_Reason == END_ERR)
+	{
+		memset(Tx_Msg.Payload[Tx_Msg.Payload_len].property_name, 0x00, sizeof(Tx_Msg.Payload[Tx_Msg.Payload_len].property_name));
+		memcpy(Tx_Msg.Payload[Tx_Msg.Payload_len].property_name, "reason",sizeof("reason"));
+
+		memset(Tx_Msg.Payload[Tx_Msg.Payload_len].property_contants, 0x00, sizeof(Tx_Msg.Payload[Tx_Msg.Payload_len].property_contants));
+		memcpy(Tx_Msg.Payload[Tx_Msg.Payload_len].property_contants, "Other",sizeof("Other"));
 
 		Tx_Msg.Payload[Tx_Msg.Payload_len].data_type = TYPE_CODE_STR;
 		Tx_Msg.Payload_len++;
@@ -1048,6 +1446,7 @@ void DataProcCmd_StopTs(void)
 	shmDataAppInfo.charge_comp_status = END_NONE;
 	bConfigSaveFlg = true;
 	// ConfigSave();
+	CsConfigVal.bReqChargeAmtFlg = true;
 }
 
 
@@ -2195,6 +2594,74 @@ void MakeDataCmd_DataTrans_q2(void){
 
 	memset(Tx_Msg.Payload[2].property_contants, 0x00, sizeof(Tx_Msg.Payload[2].property_contants));
 	sprintf(temp_buf2, "{\\\"connectorId\\\":%d,\\\"cancelReason\\\":\\\"01\\\"}",bDevChannel+1);
+	memcpy(Tx_Msg.Payload[2].property_contants, temp_buf2,sizeof(temp_buf2));
+	Tx_Msg.Payload[2].data_type = TYPE_CODE_STR;
+}
+
+
+void MakeDataCmd_DataTrans_mbrUntpc(void){
+	char temp_buf2[150];
+
+	Tx_Msg.Msg_type = MSG_TYPE_CALL;
+	Tx_Msg.UniqueID = CstGetTime_Msec_test();	
+    Tx_Msg.Payload_len = 3;
+	Tx_Msg.Action_Code = CP_REQ_ACTION_CODE_DATATRANS;
+
+	memset(Tx_Msg.Payload[0].property_name, 0x00, sizeof(Tx_Msg.Payload[0].property_name));
+	memcpy(Tx_Msg.Payload[0].property_name, "vendorId",sizeof("vendorId"));
+
+	memset(Tx_Msg.Payload[0].property_contants, 0x00, sizeof(Tx_Msg.Payload[0].property_contants));
+	memcpy(Tx_Msg.Payload[0].property_contants, "tscontech",sizeof("tscontech"));
+	Tx_Msg.Payload[0].data_type = TYPE_CODE_STR;
+
+	memset(Tx_Msg.Payload[1].property_name, 0x00, sizeof(Tx_Msg.Payload[1].property_name));
+	memcpy(Tx_Msg.Payload[1].property_name, "messageId",sizeof("messageId"));
+
+	memset(Tx_Msg.Payload[1].property_contants, 0x00, sizeof(Tx_Msg.Payload[1].property_contants));
+	memcpy(Tx_Msg.Payload[1].property_contants, "mbrUntpc",sizeof("mbrUntpc"));
+	Tx_Msg.Payload[1].data_type = TYPE_CODE_STR;
+
+	memset(Tx_Msg.Payload[2].property_name, 0x00, sizeof(Tx_Msg.Payload[2].property_name));
+	memcpy(Tx_Msg.Payload[2].property_name, "data",sizeof("data"));
+
+	memset(Tx_Msg.Payload[2].property_contants, 0x00, sizeof(Tx_Msg.Payload[2].property_contants));
+
+	char card_no[16];
+	memcpy(card_no, shmDataAppInfo.card_no, sizeof(card_no));
+	memset(&(card_no[16]), '\0', 1);
+
+	sprintf(temp_buf2, "{\\\"idTag\\\":\\\"%s\\\"}",card_no);
+	memcpy(Tx_Msg.Payload[2].property_contants, temp_buf2,sizeof(temp_buf2));
+	Tx_Msg.Payload[2].data_type = TYPE_CODE_STR;
+}
+
+void MakeDataCmd_DataTrans_chargeAmt(void){
+	char temp_buf2[150];
+
+	Tx_Msg.Msg_type = MSG_TYPE_CALL;
+	Tx_Msg.UniqueID = CstGetTime_Msec_test();	
+    Tx_Msg.Payload_len = 3;
+	Tx_Msg.Action_Code = CP_REQ_ACTION_CODE_DATATRANS;
+
+	memset(Tx_Msg.Payload[0].property_name, 0x00, sizeof(Tx_Msg.Payload[0].property_name));
+	memcpy(Tx_Msg.Payload[0].property_name, "vendorId",sizeof("vendorId"));
+
+	memset(Tx_Msg.Payload[0].property_contants, 0x00, sizeof(Tx_Msg.Payload[0].property_contants));
+	memcpy(Tx_Msg.Payload[0].property_contants, "tscontech",sizeof("tscontech"));
+	Tx_Msg.Payload[0].data_type = TYPE_CODE_STR;
+
+	memset(Tx_Msg.Payload[1].property_name, 0x00, sizeof(Tx_Msg.Payload[1].property_name));
+	memcpy(Tx_Msg.Payload[1].property_name, "messageId",sizeof("messageId"));
+
+	memset(Tx_Msg.Payload[1].property_contants, 0x00, sizeof(Tx_Msg.Payload[1].property_contants));
+	memcpy(Tx_Msg.Payload[1].property_contants, "chargeAmt",sizeof("chargeAmt"));
+	Tx_Msg.Payload[1].data_type = TYPE_CODE_STR;
+
+	memset(Tx_Msg.Payload[2].property_name, 0x00, sizeof(Tx_Msg.Payload[2].property_name));
+	memcpy(Tx_Msg.Payload[2].property_name, "data",sizeof("data"));
+
+	memset(Tx_Msg.Payload[2].property_contants, 0x00, sizeof(Tx_Msg.Payload[2].property_contants));
+	sprintf(temp_buf2, "{\\\"transactionId\\\":%llu}",CsConfigVal.bTrId[bDevChannel+1]);
 	memcpy(Tx_Msg.Payload[2].property_contants, temp_buf2,sizeof(temp_buf2));
 	Tx_Msg.Payload[2].data_type = TYPE_CODE_STR;
 }

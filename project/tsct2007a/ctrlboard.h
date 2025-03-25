@@ -265,9 +265,10 @@ typedef struct
 } ConfigBackup;
 
 typedef enum{
-    MEM_EMPTY = 0,
+    MEM_NON = 0,
     MEM_MEBER = 1,
-    MEM_NON,
+    MEM_ROAM,
+    MEM_GUEST,
     MEM_VIP
 } MEM_TYPE;
 
@@ -337,6 +338,11 @@ typedef struct
 	unsigned char sOri_price[4];			   		// 할인되기 전의 오리지날 금액
     unsigned char charge_start_time[7];               // Charge Starting Time
     MEM_TYPE member_type;			   		        // using meber type
+    unsigned int finalAmt;    // 최종정산금액
+    unsigned int billAmt;    //청구금액
+    unsigned int remainPoint;   //포인트
+    unsigned int usedPoint;   //포인트
+    unsigned char chargeAmt_Check; //충전 종료 데이터 표시시
     
 }SHM_DATA_APP_INFO;
 
@@ -357,7 +363,7 @@ typedef struct
 
 	bool is_date_finish;							// 일 마감 처리 플래그
 
-    double OCPP_iUnitprice;
+    float OCPP_iUnitprice;
 
 }SHM_DATA_IF_INFO;
 
@@ -468,6 +474,12 @@ typedef enum
     USER_AUTH_PASSWORD,	// 3: button
 	USER_AUTH_MAX		// 4: 
 } UserAuthType;
+
+typedef enum
+{
+    AMT_NON = 0,
+    AMT_FINAL = 1 //최종단가만 표시시
+} ChargeAmt;
 
 typedef struct
 {

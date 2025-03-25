@@ -638,7 +638,7 @@ void DataProcCmd_1a(int ch)
 	vd_temp.id_card_certify = rxPacket.vd[index]; 	
 	
 	index += 15;
-
+/*
 	switch(rxPacket.vd[index]){
 		case MEM_MEBER : 
 			shmDataAppInfo.member_type = MEM_MEBER-1;
@@ -653,7 +653,7 @@ void DataProcCmd_1a(int ch)
             shmDataAppInfo.member_type = MEM_MEBER-1;
 			break;
 	}
-
+*/
     if(vd_temp.id_card_certify == 0x01) 
     {
 		printf("========Debug : [[[true]]] vd_temp[%d].id_card_certify[%d]========== \n", tmp_ch, vd_temp.id_card_certify);
