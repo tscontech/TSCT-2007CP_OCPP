@@ -184,7 +184,7 @@ bool MainOnEnter(ITUWidget* widget, char* param)
 	shmDataAppInfo.finalAmt = 0;
 	shmDataAppInfo.chargeAmt_Check = AMT_NON;
 	shmDataIfInfo.card_auth = CARD_AUTH_WAIT;
-	
+	VasDataInit();
 
 	memset(CsConfigVal.parentId, '\0', sizeof(CsConfigVal.parentId));
 

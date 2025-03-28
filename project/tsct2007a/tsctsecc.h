@@ -70,6 +70,7 @@ typedef enum {
     CSM_STAT_STOPCHRG,
     CSM_STAT_FAILURESTOP,
     CSM_STAT_NARMALSTOP,
+    CSM_STATUS_PAUSE_SESSION = 21,
 } CSM_STAT;
 
 typedef struct  {
@@ -140,6 +141,7 @@ typedef struct {
 } SECC_VAS_READ_DATA;
 
 SECC_VAS_READ_DATA seccVasRxData[30];
+SECC_VAS_READ_DATA seccVasChargingData;
 
 typedef struct {
     uint16_t dataLenth;
@@ -219,4 +221,5 @@ typedef enum{
 SECC_CHRG_STEP SeccChrgStep;
 // SECC_CHRG_STEP SeccChrgStep = SECC_CHRG_STEP_NONE;
 bool Secc_IsReady(void);
+void VasDataInit(void);
 #endif

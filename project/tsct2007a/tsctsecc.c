@@ -54,18 +54,11 @@
 // Local Variable
 //-----------------------------------------------------------------------
 static pthread_t sReqPlcTask;
-
 static pthread_t sReadPlcTask;
-
-
 uint16_t PlcRespWaitCnt = false;
-
 bool SendChkFlg = false;
-
 uint8_t charge_cnt = 0;
-
 uint8_t vasReadCd = false;
-
 uint16_t vasDataBuf[512];
 bool bPlcConn;
 
@@ -142,6 +135,11 @@ static uint8_t ChkVasData(void)
 static uint8_t ChckSeccStat(void)
 {
 	return MakeReadTx(30002, 6);
+}
+
+static uint8_t ChckSeccSoC(void)
+{
+	return MakeReadTx(30040, 1);
 }
 
 static uint8_t SendChrgReady(void)
@@ -312,7 +310,7 @@ uint8_t ChrgSecc(void)
 	if((SeccChrgStep > SECC_CHRG_STEP_START) && (SeccTxData.status_fault & (1<<SECC_STAT_STOP))) 
 	{
 		SeccModbusWriteTx.Data16[0] = Led2Bed16(SeccTxData.status_fault);
-
+		CtLogGreen("Chrging Stop PLC Send");
 		return MakeWriteTx(40001, 1);
 	}
 
@@ -511,16 +509,21 @@ uint8_t ChrgSecc(void)
 						return ReadVasData();
 					}
 
-					if(charge_cnt%10 == 0) {		// per 500ms
+					if(charge_cnt%10 == 0) {
 						return ChkVasData();
 					}
-					
-					else if(charge_cnt%10 == 5)		// per 500ms
+					else if(charge_cnt%10 == 2)
 					{
 						return SendChrgPrm();
 					}
+					else if(charge_cnt%10 == 4)
+					{
+						return ChckSeccSoC();
+					}
 					else
+					{
 						return ChckSeccStat();
+					}
 				}
 			break;
 		}
@@ -973,9 +976,9 @@ bool vasParsFunc(SECC_VAS_READ_DATA* des, uint16_t *buf, uint16_t* src, uint8_t 
 
 	des->timeStamp = (buf8[2] << 24) + (buf8[3] << 16) + (buf8[4] << 8) + buf8[5];	// ???
 
-	printf("[VAS] TimeStap : %lu ////// \r\n", des->timeStamp);
+	//printf("[VAS] TimeStap : %lu ////// \r\n", des->timeStamp);
 
-	printf("[VAS] VIN :");
+	//printf("[VAS] VIN :");
 
 	memcpy(&des->vin[0], &buf8[8], 17);
 
@@ -989,7 +992,7 @@ bool vasParsFunc(SECC_VAS_READ_DATA* des, uint16_t *buf, uint16_t* src, uint8_t 
 
 	des->soc = buf8[27];
 
-	// printf("[VAS] SOC : %lu ////// \r\n", des->soc);
+	 printf("[VAS] SOC : %lu ////// \r\n", des->soc);
 
 	des->soh = buf8[30];
 
@@ -1095,6 +1098,12 @@ void ParsRxData(void)
 			tmp -= 2;
 		if(tmp <= 0)	break;
 
+		case 30040:
+			SeccRxData.soc = Led2Bed16(SeccModbusReadRx.Data16[(SeccModbusReadRx.DataLen - tmp)/2]);
+			 //printf("SeccRxData.soc : %d\r\n", SeccRxData.soc);
+			tmp -= 2;
+		if(tmp <= 0)	break;
+
 		case 32001:	// header + data size 10 ~ ffff+10
 			SeccRxData.vasMapCnt = Led2Bed16(SeccModbusReadRx.Data16[(SeccModbusReadRx.DataLen - tmp)/2]);
 			// printf("SeccRxData.vasMapCnt : %d\r\n", SeccRxData.vasMapCnt);
@@ -1184,10 +1193,11 @@ void ParsRxData(void)
 		if(ret_b) 
 		{
 			// IdaKeriData_idx = 0;		// Quit Duplication with IDA.
+			seccVasChargingData.soc = seccVasRxData[seccVasDataCnt].soc;
 
 			if(seccVasDataCnt++ > 29) 
 			{
-				memcpy(&seccVasRxData[0], &(seccVasRxData[1]), sizeof(seccVasRxData[0])*29);
+			//	memcpy(&seccVasRxData[0], &(seccVasRxData[1]), sizeof(seccVasRxData[0])*29);
 				seccVasDataCnt = 29;
 			}
 		}
@@ -1238,21 +1248,24 @@ static void* SeccRS232ReadTask(void* arg)
 						// DumpBuffer("Secc Write Response", pars_buf, bufsize);
 					}	
 				}
-
-				
 			}
 		}
-
-		else{
+		else
+		{
 			// erro todo
 		}
-
-
-        usleep(SECC_READ_232_TASK_DELAY * 1000);
+		usleep(SECC_READ_232_TASK_DELAY * 1000);
 	}
 		
 	sReadPlcTask = 0;
 	CtLogYellow("[RFID] exit read rs232 thread\n");
+}
+
+void VasDataInit(void)
+{
+	memset(seccVasRxData, 0, sizeof(seccVasRxData));
+	seccVasDataCnt= 0;
+	seccVasChargingData.soc = 0;
 }
 
 void SeccInit(void)

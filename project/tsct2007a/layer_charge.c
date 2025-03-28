@@ -345,8 +345,13 @@ static void* sChargeMonitoringTaskFuntion(void* arg)
 			CstSetUsedEnergy(charge_watt, sChargeTime);
 			
 			pricepollCount++;
-		}
 
+			printf("[TSCT_Charging] Charging soc %lu\r\n",seccVasChargingData.soc);
+			if(seccVasChargingData.soc >=100)
+			{
+				TSCT_ChargingStop();
+			}
+		}
 				
 		memset(buf, 0, 32);
 		sprintf(buf, "%d.%02d %s", iUnitprice/100, iUnitprice%100, STR_PRICE_WON);
@@ -355,13 +360,11 @@ static void* sChargeMonitoringTaskFuntion(void* arg)
 		memset(buf, 0, 32);
 		sprintf(buf, "%d %s", charge_price/100, STR_PRICE_WON); ///mod (추후 프로토콜 전송 값 확인)
 		ituTextSetString(sEffectiveCurrentText, buf);
-		//충전??금
 
 		memset(buf, 0, 32);
 		sprintf(buf, "%.2f kWh",(float)charge_watt/100.0f ); ///mod
 		ituTextSetString(sEnergyUsedText, buf);
-		//충전??
-		
+
 		if(sChargingInfocheck)
 		{
 			memset(buf, 0, 32);
@@ -405,10 +408,8 @@ static void* sChargeMonitoringTaskFuntion(void* arg)
 			}
 		}
 
-
 		if(	SeccTxData.status_fault & (1<<SECC_STAT_STOP)) {
 			CtLogRed("Charge Stop by SECC [%lu]", SeccTxData.status_fault);
-			//ShowWhmErrorDialogBox(ERR_CHARGE);
 			TSCT_ChargingStop();
 		}		
 
@@ -418,7 +419,6 @@ static void* sChargeMonitoringTaskFuntion(void* arg)
 		{
 			TSCT_ChargingStop();
 		}
-			
 
 		if(CsConfigVal.bReqRmtStopTSFlg){
 			// CsConfigVal.bReqRmtStopTSFlg = false;
