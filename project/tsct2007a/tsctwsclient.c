@@ -12,22 +12,16 @@
 #include <sys/ioctl.h>
 #include <pthread.h>
 #include "SDL/SDL.h"
-//#include <time.h>
 #include <strings.h>    /* for bzero, strcasecmp, and strncasecmp */
 #include "scene.h"
 #include "tsctwsclient.h"
 #include "tsctcommon.h"
 #include "tsctcfg.h"
 #include "ctrlboard.h"
-
 #include "curl/curl.h"
-
 #include "ocpp_cmd.h"
 
-//#include "tsctjson.h"
-
 CURL *curl = NULL;
-pthread_mutex_t curlMutex;
 bool isBrokenSocket;
 
 struct curl_blob blob;
@@ -336,15 +330,6 @@ static CURLcode WS_Server_connect(void)
 	CURLcode ret = CURLE_OK;
 	char ConnURLAddr_buf[120];
 	char chBuf[15];
-/*
-	//pthread_mutex_lock(&curlMutex);
-	if(curl != NULL)
-	{
-		isBrokenSocket = true;
-		curl_easy_cleanup(curl);
-		curl = NULL;
-	}
-	*/
 	curl_global_init(CURL_GLOBAL_DEFAULT);
 	curl = curl_easy_init();
 	
@@ -380,8 +365,7 @@ static CURLcode WS_Server_connect(void)
 			isBrokenSocket = false;
 		}
 	}
-	//pthread_mutex_unlock(&curlMutex);
-  
+ 
     return ret;
 }
 
@@ -534,34 +518,15 @@ bool Tsct_Curl_Ws_Recv(void)
 	CURLcode ret = 1;
 	size_t rlen;
 	struct curl_ws_frame* meta;
-/*
-	//pthread_mutex_lock(&curlMutex);
-	if(curl == NULL || isBrokenSocket) 
-	{
-		//pthread_mutex_unlock(&curlMutex);
-		sleep(1);
-		return false;
-	}
-	*/
 	ret = curl_ws_recv(curl, curl_ws_recv_buf, sizeof(curl_ws_recv_buf), &rlen, &meta);
-	//pthread_mutex_unlock(&curlMutex);
 	if(ret == CURLE_AGAIN) {
 		return false;
 	}
 	// Check curl receive Error
-	else if(ret > 0){
+	else if(ret > 0)
+	{
 		Clear_Rx_Msg_Buff();
 		CtLogRed("\r\nRecv fail %d\r\n", ret); //Error Code 56 - Connection Lost
-		/*
-		//pthread_mutex_lock(&curlMutex);
-		if(bConnect)
-		{
-			isBrokenSocket = true;
-			curl_easy_cleanup(curl);
-			curl = NULL;
-		}
-		//pthread_mutex_unlock(&curlMutex);
-		*/
 		bConnect = false;
 		sleep(1);
 		return false;
@@ -894,22 +859,9 @@ void Tsct_Curl_Ws_Trans(void)	// CALL
 	CURLcode ret = 1;
 	size_t bytes_encode;
 	size_t bytes_sent;
-	// char curl_ws_send_buf[51200];
 
 	Make_Ocpp_Msg(curl_ws_send_buf);
 
-	// printf("Start Msg %s\r\n", curl_ws_send_buf);
-
-	// sleep(1);
-	/*
-	//pthread_mutex_lock(&curlMutex);
-	if(curl == NULL || isBrokenSocket) 
-	{
-		//pthread_mutex_unlock(&curlMutex);
-		sleep(1);
-		return;
-	}
-	*/
 	ret = curl_ws_send(curl, curl_ws_send_buf, strlen(curl_ws_send_buf), &bytes_sent, 0, CURLWS_TEXT);
 	if(ret){
 		CtLogRed("WS send fail %d\r\n", ret);
@@ -922,19 +874,13 @@ void Tsct_Curl_Ws_Trans(void)	// CALL
 		return;
 		isBrokenSocket = false;
 	}
-	//pthread_mutex_unlock(&curlMutex);
-	// else{
-		OcppTxMsgLog("%s", curl_ws_send_buf);
-		// printf("\r\nSend Success :\r\n %s\r\n", curl_ws_send_buf);
-		// printf("\r\nSend Success :\r\n\r\n");
-		if(Tx_Msg.Msg_type == MSG_TYPE_CALL){
-			bWaitResFlg = true;
-			// if(Tx_Msg.Action_Code == CP_REQ_ACTION_CODE_DATATRANS)
-			// 	bWaitResFlg = false;
-			Reset_Time(&tv_res);
-			memcpy(&Call_Tx_Msg,&Tx_Msg,sizeof(Call_Tx_Msg));
-		}
-	// }
+	
+	OcppTxMsgLog("%s", curl_ws_send_buf);
+	if(Tx_Msg.Msg_type == MSG_TYPE_CALL){
+		bWaitResFlg = true;
+		Reset_Time(&tv_res);
+		memcpy(&Call_Tx_Msg,&Tx_Msg,sizeof(Call_Tx_Msg));
+	}
 }
 
 uint8_t remainVasCnt = 0;
@@ -1220,15 +1166,10 @@ static void NetRun(void)
 		ConfigSave();
 		bConfigSaveFlg = false;
 	}
-
-    if(!bConnect){
-//		pthread_mutex_init(&curlMutex, NULL);
-        //usleep(200*1000);
-		//printf("bConnect false \r\n");
+    if(!bConnect)
+	{
 		usleep(200*1000);
 		WS_Server_connect();		
-		//printf("re connect \r\n");
-		//usleep(200*1000);
 		usleep(1000*1000);
     }
     else{
@@ -1290,17 +1231,6 @@ static void* WSClientThread(void* arg)
 			Clear_Rx_Msg_Buff();
 			iteEthGetLink_WS = false;
 			bConnect = false;
-			/*
-			//pthread_mutex_lock(&curlMutex);
-			if(curl != NULL)
-			{
-				isBrokenSocket = true;
-				printf("[WsClientThread]1 curl_easy_cleanup()");
-				curl_easy_cleanup(curl);
-				curl = NULL;
-			}
-			//pthread_mutex_unlock(&curlMutex);
-			*/
 			usleep(200*1000); 
 			continue;
 		}
@@ -1308,17 +1238,6 @@ static void* WSClientThread(void* arg)
 		if(iteEthGetLink_WS == false){
 			NetworkReset();
 			iteEthGetLink_WS = true;
-			/*
-			//pthread_mutex_lock(&curlMutex);
-			if(curl != NULL)
-			{
-				isBrokenSocket = true;
-				printf("[WsClientThread]2 curl_easy_cleanup()");
-				curl_easy_cleanup(curl);
-				curl = NULL;
-			}
-			//pthread_mutex_unlock(&curlMutex);
-			*/
 			usleep(200*1000); 
 			continue;
 		}
@@ -1580,7 +1499,6 @@ void WsClientInit(void)
 
 	//curl_global_init(CURL_GLOBAL_DEFAULT);
 
-	//pthread_mutex_init(&curlMutex, NULL);
 	ServerCallError = true;
 
 	if (sWSRxTask == 0)

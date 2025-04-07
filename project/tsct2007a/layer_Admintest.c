@@ -81,8 +81,6 @@ static Uint32 AdminSetTestTimer(Uint32 interval, void *param)
 	SDL_RemoveTimer(sTimerAdmintest);
 	
 	bool open, close;
-		bool bMc1Check11;
-		bool bMc2Check11;
 	if(adminsettestselect == 1)
 	{
 		if(rfredercheck == false && temprfButtonCheck == true)
@@ -323,7 +321,7 @@ bool EmgteststartOnPress(ITUWidget* widget, char* param)
 }
 bool Mc1teststartOnPress(ITUWidget* widget, char* param)
 {
-	if(!bMc1Check1 && !bMc2Check1)
+	if(!bMc1Check1)
 	{	
 		ituTextSetString(sAdminMc1txt, "ON");	
 		MagneticContactorOn();
@@ -366,7 +364,20 @@ bool Door1teststartOnPress(ITUWidget* widget, char* param)
 
 bool Mc2teststartOnPress(ITUWidget* widget, char* param)
 {
-
+	if(!bRouterPower)
+	{	
+		ituTextSetString(sAdminMc2txt, "ON");	
+		RouterContactorOn();
+		bRouterPower= true;
+		bMc2Check1 = true;
+	}
+	else	
+	{
+		ituTextSetString(sAdminMc2txt, "OFF");	
+		RouterContactorOff();	
+		bRouterPower= false;
+		bMc2Check1 = false;;	
+	}
     return true;
 }
 

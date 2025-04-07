@@ -53,3 +53,21 @@ bool CstGetMcstatus(void)
 	return MCOn;
 }
 
+
+void RouterContactorOn(void)
+{
+	printf("[Router] Router contactor on\n");
+	ithGpioSetMode(GPIO_ROUTER_CTL, ITH_GPIO_MODE0);
+	ithGpioSetOut(GPIO_ROUTER_CTL);
+	//ithGpioSet(GPIO_ROUTER_CTL);
+	ithGpioClear(GPIO_ROUTER_CTL);
+}
+
+void RouterContactorOff(void)
+{
+	printf("[Router] Router contactor off\n");
+	ithGpioSetMode(GPIO_ROUTER_CTL, ITH_GPIO_MODE0);
+	ithGpioSetOut(GPIO_ROUTER_CTL);
+	//ithGpioClear(GPIO_ROUTER_CTL);
+	ithGpioSet(GPIO_ROUTER_CTL);
+}

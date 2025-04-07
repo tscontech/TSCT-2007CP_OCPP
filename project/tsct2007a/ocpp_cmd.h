@@ -48,6 +48,7 @@ void MakeDataCmd_DataTrans_q1(void);
 void MakeDataCmd_DataTrans_q2(void);
 void MakeDataCmd_DataTrans_mbrUntpc(void);
 void MakeDataCmd_DataTrans_chargeAmt(void);
+void MakeDataCmd_DataTrans_BatteryInfo(void);
 
 void sampledValue_Data(int Payload_idx);
 char* ChargerErrorCode();

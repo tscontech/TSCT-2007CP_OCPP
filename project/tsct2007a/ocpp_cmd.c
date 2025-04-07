@@ -2665,3 +2665,34 @@ void MakeDataCmd_DataTrans_chargeAmt(void){
 	memcpy(Tx_Msg.Payload[2].property_contants, temp_buf2,sizeof(temp_buf2));
 	Tx_Msg.Payload[2].data_type = TYPE_CODE_STR;
 }
+
+void MakeDataCmd_DataTrans_BatteryInfo(void){
+	char temp_buf2[150];
+
+	Tx_Msg.Msg_type = MSG_TYPE_CALL;
+	Tx_Msg.UniqueID = CstGetTime_Msec_test();	
+    Tx_Msg.Payload_len = 3;
+	Tx_Msg.Action_Code = CP_REQ_ACTION_CODE_DATATRANS;
+
+	memset(Tx_Msg.Payload[0].property_name, 0x00, sizeof(Tx_Msg.Payload[0].property_name));
+	memcpy(Tx_Msg.Payload[0].property_name, "vendorId",sizeof("vendorId"));
+
+	memset(Tx_Msg.Payload[0].property_contants, 0x00, sizeof(Tx_Msg.Payload[0].property_contants));
+	memcpy(Tx_Msg.Payload[0].property_contants, "tscontech",sizeof("tscontech"));
+	Tx_Msg.Payload[0].data_type = TYPE_CODE_STR;
+
+	memset(Tx_Msg.Payload[1].property_name, 0x00, sizeof(Tx_Msg.Payload[1].property_name));
+	memcpy(Tx_Msg.Payload[1].property_name, "messageId",sizeof("messageId"));
+
+	memset(Tx_Msg.Payload[1].property_contants, 0x00, sizeof(Tx_Msg.Payload[1].property_contants));
+	memcpy(Tx_Msg.Payload[1].property_contants, "BatteryInfo",sizeof("BatteryInfo"));
+	Tx_Msg.Payload[1].data_type = TYPE_CODE_STR;
+
+	memset(Tx_Msg.Payload[2].property_name, 0x00, sizeof(Tx_Msg.Payload[2].property_name));
+	memcpy(Tx_Msg.Payload[2].property_name, "data",sizeof("data"));
+
+	memset(Tx_Msg.Payload[2].property_contants, 0x00, sizeof(Tx_Msg.Payload[2].property_contants));
+	sprintf(temp_buf2, "{\\\"infoCnt\\\":\\\"1\\\", \\\"batteryData\\\":[]}");
+	memcpy(Tx_Msg.Payload[2].property_contants, temp_buf2,sizeof(temp_buf2));
+	Tx_Msg.Payload[2].data_type = TYPE_CODE_STR;
+}

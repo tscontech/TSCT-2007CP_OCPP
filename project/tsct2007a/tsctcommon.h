@@ -34,11 +34,10 @@ bool bAdminExit;
 bool bErrorcheck1ShowHide;
 bool bErrorcheck2ShowHide;
 extern bool bEmbCheckShowHide;
-
 bool rfredercheck;
 extern bool pingtestcheck;
-
 bool bGloAdminStatus;
+bool bRouterPower;
 
 // EV 충전??종류 구분
 #define CP_TYPE_TOTAL                                   0xFF    //??체 ??비
@@ -65,6 +64,7 @@ bool bGloAdminStatus;
 #define GPIO_AC220_GFCI		26
 
 #define	GPIO_MAGNET_CTL1	15
+#define	GPIO_ROUTER_CTL	16
 
 #define GPIO_LED_RAMP1		44
 #define GPIO_LED_RAMP2		44
