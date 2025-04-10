@@ -241,7 +241,7 @@ void ControlPilotSetListener(ChannelType ch, CPListener listener)
  */
 void ControlPilotDisablePower(ChannelType ch)
 {	
-	//sCh1CPMonRun = false;
+	sCh1CPMonRun = false;
 	ithGpioSetMode(GPIO_CP1_RELAY_CTL, ITH_GPIO_MODE0);
 	ithGpioSetOut(GPIO_CP1_RELAY_CTL);
 	ithGpioClear(GPIO_CP1_RELAY_CTL);		
@@ -251,7 +251,7 @@ void ControlPilotDisablePower(ChannelType ch)
 
 void ControlPilotEnablePower(ChannelType ch)
 {	
-	//sCh1CPMonRun = true;
+	sCh1CPMonRun = true;
 	ithGpioSetMode(GPIO_CP1_RELAY_CTL, ITH_GPIO_MODE0);
 	ithGpioSetOut(GPIO_CP1_RELAY_CTL);
 	ithGpioSet(GPIO_CP1_RELAY_CTL);	

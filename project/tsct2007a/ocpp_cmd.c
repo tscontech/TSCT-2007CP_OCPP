@@ -303,11 +303,9 @@ void DataProcCmd_Auth(void)
 			if(!strcmp(Rx_Msg.Payload[0].sub_Payload[i].property_name, "status")){	// Allow
 				if(!strcmp(Rx_Msg.Payload[0].sub_Payload[i].property_contants, "Accepted"))
 				{
-					//shmDataIfInfo.card_auth = CARD_AUTH_OK;
+				//	shmDataIfInfo.card_auth = CARD_AUTH_OK;
 					printf("[DataProcCmd_Auth] Card Auth Pass\r\n");
 					CsConfigVal.bReqMemberFlg = true;
-//					MakeDataCmd_DataTrans_mbrUntpc();
-					
 				}
 				else {
 					shmDataAppInfo.app_order = APP_ORDER_AUTH_METHOD;
@@ -604,7 +602,7 @@ void DataProcCmd_DataTransCp(void)
 			else 
 			{
 				printf("mbrUntpc status: CARD_AUTH_FAILD\n");
-				shmDataIfInfo.card_auth = CARD_AUTH_FAILD;
+				//shmDataIfInfo.card_auth = CARD_AUTH_FAILD;
 			}
 
 		}
@@ -868,10 +866,10 @@ void DataProcCmd_HB(void)
 
 		tmp_time.tm_mon = (((Rx_Msg.Payload[0].property_contants[5] - '0') % 10) * 10)	\
 		+ (((Rx_Msg.Payload[0].property_contants[6] - '0') % 10) * 1);		
+		tmp_time.tm_mon = tmp_time.tm_mon -1;
 
 		tmp_time.tm_mday = (((Rx_Msg.Payload[0].property_contants[8] - '0') % 10) * 10)	\
 		+ (((Rx_Msg.Payload[0].property_contants[9] - '0') % 10) * 1);
-		tmp_time.tm_mday = tmp_time.tm_mday -1;
 
 		tmp_time.tm_hour = (((Rx_Msg.Payload[0].property_contants[11] - '0') % 10) * 10)	\
 		+ (((Rx_Msg.Payload[0].property_contants[12] - '0') % 10) * 1);						

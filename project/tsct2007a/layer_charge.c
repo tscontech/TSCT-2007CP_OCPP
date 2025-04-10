@@ -45,20 +45,17 @@ static ITUIcon* schargingTextIcon;
 static ITUIcon* sreadyChgGageIcon;
 static ITUButton* sStopChargeButton;
 
-
 static ITUText* sEffectiveCurrentText;
 static ITUText* sEnergyUsedText;
 static ITUText* sChargeTimeText;
 static ITUText* sUnitPricetxt;
 static ITUText* susertxt;
 static ITUText* sMemberTypetxt;
-
 //static ITUText* seffectiveCurrenttxt1;
 static ITUText* sEffectiveCurrentText1;
-
 static ITUText* schargeTimeText;
 //static ITUText* schargeTimeTitleText;
-
+static ITUText* sSocText;
 
 static bool bLayerChargeFlg = false;
 static bool sCharging = false;
@@ -77,7 +74,11 @@ int charge_stop_btnState[2];
 static int sCh1CurrentZeroTime = 0;
 
 bool chargecomp_stop; 	// Car Send Charging Stop to Charger
-
+bool socFlg;
+struct timeval Errortv;
+struct timeval Nowtv;
+bool NetError_ChargingFlg;
+long NetErrorTime;
 extern bool bAmiErrChk;
 
 //-----------------------------------------------------------------------
@@ -346,10 +347,22 @@ static void* sChargeMonitoringTaskFuntion(void* arg)
 			
 			pricepollCount++;
 
-			printf("[TSCT_Charging] Charging soc %lu\r\n",seccVasChargingData.soc);
+			//printf("[TSCT_Charging] Charging soc %lu\r\n",seccVasChargingData.soc);
 			if(seccVasChargingData.soc >=100)
 			{
 				TSCT_ChargingStop();
+			}
+			
+			if (seccVasChargingData.soc > 0)
+			{
+				if(!socFlg)
+				{
+					socFlg = true;
+					ituWidgetSetVisible(sSocText, true);
+				}
+				memset(buf, 0, 32);
+				sprintf(buf, "%lu %s", seccVasChargingData.soc, STR_CHARGING_SOC);
+				ituTextSetString(sSocText, buf);
 			}
 		}
 				
@@ -388,13 +401,44 @@ static void* sChargeMonitoringTaskFuntion(void* arg)
 
 			RequestPollingStart();
 		}
-		/*
-		if(ServerCallError)
+		
+		if (theConfig.ConfirmSelect == USER_AUTH_NET)
 		{
-			StopCharge();
-			ituLayerGoto(ituSceneFindWidget(&theScene, "ch2FinishLayer"));
+			if((GetServerCon() == 0 || TSCT_NetworkIsReady() == 0) && !NetError_ChargingFlg)
+			{
+				// 서버& 네트워크 단절시 30분 충전 기능 
+				CtLogRed("NetError Charging  -- start : %d: %d",GetServerCon(),TSCT_NetworkIsReady());
+				NetError_ChargingFlg = true;
+				gettimeofday(&Errortv, NULL);
+				NetErrorTime = Errortv.tv_sec;
+			}
+			else if(GetServerCon() == 1 && TSCT_NetworkIsReady() == 1 && NetError_ChargingFlg)
+			{
+				CtLogRed("NetError Charging -- clear : %d: %d",GetServerCon(),TSCT_NetworkIsReady());
+				NetError_ChargingFlg = false;
+				NetErrorTime = 0;
+			}
 		}
-*/
+
+		if(NetError_ChargingFlg)
+		{
+			gettimeofday(&Nowtv, NULL);
+			/*
+			int nowT = (Nowtv.tv_sec % 3600) / 60;
+			int Errorminute = (NetErrorTime % 3600) / 60;
+			int CheckT = nowT - Errorminute;
+			*/
+			long nowT = Nowtv.tv_sec - NetErrorTime;
+			long Errorminute = (nowT % 3600) / 60;
+			long hourT = nowT / 3600;
+			CtLogRed("NetError Charging -- stoping : %d: %d", nowT, Errorminute);
+			if(Errorminute > 29)
+			{
+				CtLogRed("NetError Charging -- stop : %d", Errorminute);
+				TSCT_ChargingStop();
+			}
+		}
+		
 		if(startTsQ.faultChargFlg)
 		{
 			// shmDataAppInfo.charge_comp_status = END_CARD;
@@ -421,7 +465,6 @@ static void* sChargeMonitoringTaskFuntion(void* arg)
 		}
 
 		if(CsConfigVal.bReqRmtStopTSFlg){
-			// CsConfigVal.bReqRmtStopTSFlg = false;
 			TSCT_ChargingStop();
 		}	
 	}
@@ -735,7 +778,6 @@ bool ChargeOnEnter(ITUWidget* widget, char* param)
 		SeccTxData.status_fault |= 1<<SECC_STAT_CHARG;
 
 	bLayerChargeFlg = true;
-
 	sChCharging = true;
 
 	StartTimeCheck = true;
@@ -747,16 +789,13 @@ bool ChargeOnEnter(ITUWidget* widget, char* param)
 	gAmiStartWatt = -1;
 	charge_stop_btnState[bDevChannel] = 0;
 	CstSetUsedEnergy(0.0, 0);
-
 	theConfig.chargingstatus |= (1<<(MAX_CONECTOR_ID+1));
-
 	StopTsConfig.Connector_No = bDevChannel;
-
 	StopTsConfig.TrId = CsConfigVal.bTrId[bDevChannel+1];
-
 	GetDateTime(StopTsConfig.Time_Stamp);
-
 	StopTsConfig.MeterStop_Val = 0;
+	NetError_ChargingFlg = false;
+	NetErrorTime = 0;
 
 	for(int i =0;i<4;i++)
 		StopTsConfig.MeterStop_Val += (uint32_t)(shmDataAppInfo.eqp_watt[i] << ((3-i)*8));
@@ -777,10 +816,8 @@ bool ChargeOnEnter(ITUWidget* widget, char* param)
 	{
 		sLcgBackground = ituSceneFindWidget(&theScene, "chargeBackground");
 		assert(sLcgBackground);
-
 		sChargeSprite = ituSceneFindWidget(&theScene, "chargeSprite");
 		assert(sChargeSprite);
-
 		sback_Power = ituSceneFindWidget(&theScene, "back_Power");
 		assert(sback_Power);
 		sback_Unit = ituSceneFindWidget(&theScene, "back_Unit");
@@ -811,6 +848,7 @@ bool ChargeOnEnter(ITUWidget* widget, char* param)
 		sEffectiveCurrentText1 = ituSceneFindWidget(&theScene, "effectiveCurrentText1");
 		assert(sEffectiveCurrentText1);
 		sMemberTypetxt = ituSceneFindWidget(&theScene, "MemberTypetxt");
+		sSocText = ituSceneFindWidget(&theScene, "Soctxt");
 						
 	}
 	iUnitprice = charge_time_price(0);
@@ -853,6 +891,12 @@ bool ChargeOnEnter(ITUWidget* widget, char* param)
 	{
 		ituTextSetString(sMemberTypetxt, "");
 	}
+
+	memset(buf, 0, 32);
+	sprintf(buf, "0 %s", STR_CHARGING_SOC);
+	ituTextSetString(sSocText, buf);
+	ituWidgetSetVisible(sSocText, false);
+	socFlg = false;
 	
 	
 	ControlPilotSetListener(bDevChannel, CPListenerOnCharge);

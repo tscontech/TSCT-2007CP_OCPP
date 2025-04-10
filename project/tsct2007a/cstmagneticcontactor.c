@@ -59,8 +59,8 @@ void RouterContactorOn(void)
 	printf("[Router] Router contactor on\n");
 	ithGpioSetMode(GPIO_ROUTER_CTL, ITH_GPIO_MODE0);
 	ithGpioSetOut(GPIO_ROUTER_CTL);
-	//ithGpioSet(GPIO_ROUTER_CTL);
-	ithGpioClear(GPIO_ROUTER_CTL);
+	//ithGpioSet(GPIO_ROUTER_CTL); //2.2.2T
+	ithGpioClear(GPIO_ROUTER_CTL); //2.2.2
 }
 
 void RouterContactorOff(void)
@@ -68,6 +68,6 @@ void RouterContactorOff(void)
 	printf("[Router] Router contactor off\n");
 	ithGpioSetMode(GPIO_ROUTER_CTL, ITH_GPIO_MODE0);
 	ithGpioSetOut(GPIO_ROUTER_CTL);
-	//ithGpioClear(GPIO_ROUTER_CTL);
-	ithGpioSet(GPIO_ROUTER_CTL);
+	//ithGpioClear(GPIO_ROUTER_CTL);  //2.2.2T
+	ithGpioSet(GPIO_ROUTER_CTL); //2.2.2
 }

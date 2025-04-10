@@ -13,5 +13,8 @@
 void MagneticContactorOn(void);
 void MagneticContactorOff(void);
 
+void RouterContactorOn(void);
+void RouterContactorOff(void);
+
 #endif
 

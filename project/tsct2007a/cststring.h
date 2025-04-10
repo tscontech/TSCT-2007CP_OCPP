@@ -56,6 +56,7 @@
 
 #define STR_OPEN_COVER_AND_CONNECTC		"충전을 시작하기 위해 차량과 연결해 주세요."
 #define STR_PRICE_WON					"원"
+#define STR_CHARGING_SOC				"%"
 #define	STR_TIME_MIN					"분"
 
 #define STR_PASS_AUTH_WAIT				"비밀번호 인증 대기중 입니다."

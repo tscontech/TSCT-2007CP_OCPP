@@ -835,3 +835,17 @@ uint16_t TsctCrc16(uint8_t *buffer, uint16_t buffer_length)
     }
     return (crc_hi << 8 | crc_lo);
 }
+
+void RouterPowerCheck(void)
+{
+	RouterContactorOff();
+	bRouterPower= false;
+	printf("[NetRun] router off: %d\n", bRouterPower);
+	sleep(60);
+	RouterContactorOn();
+	bRouterPower= true;
+	printf("[NetRun] router On: %d\n", bRouterPower);
+	nConnectCheck = 0;
+	NetworkReset();
+	usleep(200*1000); 
+}

@@ -73,17 +73,20 @@ int SDL_main(int argc, char *argv[]){
     ConfigInit();
 
     init_Data();
-    
+
+    RouterContactorOff();
+    CtLogMagenta("[SDL_main] RouterContactorOff \r\n");
+    sleep(60);
+    RouterContactorOn();
+    CtLogMagenta("[SDL_main] RouterContactorOn \r\n");
+    sleep(2);
+
     CtLogMagenta("[SDL_main] NetworkInit \r\n");
     xNetworkInit(); 
     sleep(2);
-    // ClientInit();
+    
     WsClientInit();
 
-        // WebServerInit();
-        // WebServerInit();
-
-    // CtLogMagenta("[SDL_main] BuzzerInit \r\n");usleep(100000);
     BuzzerInit();
     CtLogMagenta("[SDL_main] ScreenInit \r\n");
     ScreenInit();
@@ -96,24 +99,18 @@ int SDL_main(int argc, char *argv[]){
     CtLogMagenta("[SDL_main] StorageInit \r\n");
     StorageInit();
 
-    // CtLogMagenta("[SDL_main] AudioInit \r\n");usleep(100000);
     AudioInit();
 
     CtLogMagenta("[SDL_main] PhotoInit \r\n");
     PhotoInit();
 
-    // CtLogMagenta("[SDL_main] SceneLoad \r\n");usleep(100000);
-    // SceneLoad();
-    itpRtcInit(); printf("\n-----rtc init-----\n");
-
-    // CtLogMagenta("[SDL_main] Ac220Init \r\n");
-    // Ac220Init();
+    itpRtcInit(); 
+    printf("\n-----rtc init-----\n");
 
     BacklightInit();
 	LEDInit();
 	WattHourMeterInit();
     
-    // CstGfciInit();
     ControlPilotInit();
 
     SeccInit();

@@ -21,6 +21,7 @@ extern int charge_stop_btnState[2];
 
 void GotoStartLayer(void)
 {
+	printf("\r\n[GotoStartLayer] mainLayer\r\n");
 	char *nextLayer = "mainLayer";
 	ituLayerGoto(ituSceneFindWidget(&theScene, nextLayer));
 }

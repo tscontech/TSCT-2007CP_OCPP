@@ -22,7 +22,6 @@
 #include "ocpp_cmd.h"
 
 CURL *curl = NULL;
-bool isBrokenSocket;
 
 struct curl_blob blob;
 
@@ -117,6 +116,25 @@ char ocppConfigKeyName[MAX_CFG][40] =
 
 long lastClockTvSec = 0;
 static void* WSClientThread(void* arg);
+/*
+static bool NetTimeOut(void)
+{
+	struct timeval tEvnet;
+	unsigned long t1 = 0;
+
+	t1 = tvnet.tv_sec;
+	
+    gettimeofday(&tEvnet, NULL);
+    unsigned long t2 = tEvnet.tv_sec;
+
+    if(t2 - t1 > (unsigned long)(net_timout_min * 60))
+    {
+        bnetTimeOut = true;
+        return true;
+    }
+    return false;
+}
+*/
 void TsctCheckNetTimeSet(void)
 {
 	if(bGloAdminStatus)	return;  // when don't be a management menu.
@@ -362,7 +380,8 @@ static CURLcode WS_Server_connect(void)
 			printf(" / url : %s\r\n",ConnURLAddr_buf);	
 			bConnect = true;
 			bWaitResFlg = false;	
-			isBrokenSocket = false;
+			nConnectCheck = 0;
+			nConnectResetCount = 0;
 		}
 	}
  
@@ -872,7 +891,6 @@ void Tsct_Curl_Ws_Trans(void)	// CALL
 		sleep(1);
 		// WS_Server_connect();		
 		return;
-		isBrokenSocket = false;
 	}
 	
 	OcppTxMsgLog("%s", curl_ws_send_buf);
@@ -1168,7 +1186,10 @@ static void NetRun(void)
 	}
     if(!bConnect)
 	{
-		usleep(200*1000);
+		nConnectCheck++;
+		printf("[NetRun] Connect check : %d\n", nConnectCheck);
+		//usleep(200*1000);
+		sleep(5);
 		WS_Server_connect();		
 		usleep(1000*1000);
     }
@@ -1188,15 +1209,39 @@ static void* WSClientThread(void* arg)
 
     while(sWSClientTask > 0)
     {
-		// printf("[WsClientThread] TID : %d\n", pthread_self());
         if (theConfig.ConfirmSelect != USER_AUTH_NET) {sleep(1); continue;}
 
 		if(bGloAdminStatus) {sleep(1); continue;}
 
-		if(!FirstConnectFlg){			// for First Connection
-			if(TSCT_NetworkIsReady() && iteEthGetLink())	FirstConnectFlg = true;
-			else {sleep(1); continue;}
-		}	
+		if(nConnectCheck > 9)
+		//if(nConnectCheck > 1)
+		{
+			if(nConnectResetCount++ > 2 && shmDataAppInfo.app_order != APP_ORDER_CHARGING )
+			//if(nConnectResetCount++ > 2 && shmDataAppInfo.app_order == APP_ORDER_WAIT )
+			{
+				ConfigSave();
+				printf("\n\n soon reset....\n\n");
+				usleep(2000*1000);
+				custom_reboot();
+				continue;	
+			}
+			RouterPowerCheck();
+			CtLogYellow("[NetRun]nConnectResetCount : %d", nConnectResetCount);
+			continue;
+		}
+		
+		if(!FirstConnectFlg)
+		{
+			if(TSCT_NetworkIsReady() && iteEthGetLink())
+			{
+				FirstConnectFlg = true;
+			}
+			else 
+			{
+				sleep(1); 
+				continue;
+			}
+		}
 
 		if(CsConfigVal.bReqStartTsNo)
 		{
@@ -1212,12 +1257,9 @@ static void* WSClientThread(void* arg)
 
 			memcpy(startTsQ.IdTag, shmDataAppInfo.card_no, sizeof(shmDataAppInfo.card_no));
 			memset(&(startTsQ.IdTag[16]), '\0', 1);
-
-			//Reset_Time(&tv_2);
 		}
 
 		meterValType = Check_Sampled_Time();
-
 		if(meterValType)
 		{
 			printf("[WSClientThread] meterValType = %d\n", meterValType);
@@ -1241,11 +1283,15 @@ static void* WSClientThread(void* arg)
 			usleep(200*1000); 
 			continue;
 		}
-		if(TSCT_NetworkIsReady())	
+		if(TSCT_NetworkIsReady())
+		{
 			NetRun();
+		}
 		else
+		{
+			//printf("[WSClientThread] TSCT_NetworkIsReady off\n");
 			bConnect = false;
-		
+		}
 		usleep(50*1000);
     }        
 	sWSClientTask = 0;
@@ -1489,7 +1535,8 @@ void CreateTestVasData(void)
 void WsClientInit(void)
 {	
 	shmDataAppInfo.member_type = 0;	
-
+	nConnectCheck = 0;
+	nConnectResetCount = 0;
 	// CreateTestVasData();
 	Init_Config_Val();
 	Init_CfgKey();

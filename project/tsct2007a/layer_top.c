@@ -90,6 +90,10 @@ bool lastMeterConSetVal = true;			// Current Status
 
 extern bool bAmiErrChk;
 extern bool bPlcConn;
+struct timeval Errortv_top;
+struct timeval Nowtv_top;
+long NetErrorTime_top;
+bool NetError_Flg = true;
 
 //-----------------------------------------------------------------------
 // Function
@@ -185,6 +189,7 @@ void SetNetCon(void)
 	{
 		ituWidgetSetVisible((ITUWidget*)sNetErrIcon, false);
 		ituWidgetSetVisible((ITUWidget*)sNetIcon, true);
+		NetError_Flg = true;
 	}
 	else
 	{
@@ -391,13 +396,54 @@ static void* sTopMonitoringTaskFuntion(void* arg)
 
 static void* sTopStatusTaskFuntion(void* arg)
 {
+	//CtLogRed("[TopStatusTaskFuntion] start ");
 	bool golayer_flg;
+	long nowT_top = 0;
+	long Errorminute_top = 0;
 	while(1)
 	{
 		sleep(1);
 		SetServerCon();
 		SetMeterCon();
 		SetNetCon();
+		if(bConnect)
+		{
+			NetError_Flg = true;
+		}
+		
+		if((!bConnect || !TSCT_NetworkIsReady()) && NetError_Flg)
+		{
+			NetError_Flg = false;
+			gettimeofday(&Errortv_top, NULL);
+			NetErrorTime_top = Errortv_top.tv_sec;
+			CtLogRed("NetError_Flg  : %d : %d", NetErrorTime_top, Errortv_top.tv_sec);
+		}
+
+		if(!NetError_Flg && theConfig.ConfirmSelect == USER_AUTH_NET)
+		{
+			gettimeofday(&Nowtv_top, NULL);
+			/*
+			nowT_top = (Nowtv_top.tv_sec % 3600) / 60;
+			Errorminute_top = (NetErrorTime_top % 3600) / 60;
+			CheckT = nowT_top - Errorminute_top;
+*/
+			nowT_top = Nowtv_top.tv_sec - NetErrorTime_top;
+			Errorminute_top = (nowT_top % 3600) / 60;
+			
+			printf(" Top net error : %d: %d \n", nowT_top, Errorminute_top);
+
+			if(Errorminute_top > 5)
+			{
+				CtLogRed("NetError stop : %d", Errorminute_top);
+				if(shmDataAppInfo.app_order != APP_ORDER_CHARGING)
+				{
+					ConfigSave();
+					printf("\n\n soon reset....\n\n");
+					usleep(200*1000);
+					custom_reboot();
+				}
+			}
+		}
 
 		if(CsConfigVal.bReqRmtStartTsNo){
 			bDevChannel = CsConfigVal.bReqRmtStartTsNo - 1;
@@ -508,15 +554,14 @@ void TopSetTimer(int count, TopTimerTimeoutListener listener)
 {
 	char buf[32];
 
-	sprintf(buf, "%d", count);
-	ituTextSetString(sTimerText, buf);
-	ituWidgetSetVisible(scountdownIcon, true);
-
 	sTimerCount = count;
 	sTimeoutListener = listener;
 	sTimerCounting = true;
 	gettimeofday(&sttv, NULL);
 	printf("TopSetTimer == sTimerId = SDL_AddTimer(1000, TopUpdateTimer, NULL) \n");
+	sprintf(buf, "%d", count);
+	ituTextSetString(sTimerText, buf);
+	ituWidgetSetVisible(scountdownIcon, true);
 	sDLsTopMonitoring = true;
 	if (sTopMonitoringTask == 0)
 	{

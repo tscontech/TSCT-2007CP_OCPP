@@ -233,6 +233,7 @@ bool GetHomeLayer(void);
 void SetHomeLayer(bool bset);
 
 uint16_t TsctCrc16(uint8_t *buffer, uint16_t buffer_length);
+void RouterPowerCheck(void);
 
 #endif
 

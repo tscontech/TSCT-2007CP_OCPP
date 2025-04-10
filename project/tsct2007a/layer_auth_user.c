@@ -27,7 +27,7 @@
 //-----------------------------------------------------------------------
 // MACRO
 //-----------------------------------------------------------------------
-#define CARD_WAIT_TIMEOUT	30
+//#define CARD_WAIT_TIMEOUT	30
 //#define CARD_WAIT_TIMEOUT 10
 //-----------------------------------------------------------------------
 // Local Variable
@@ -83,18 +83,12 @@ bool AuthUserOnEnter(ITUWidget* widget, char* param)
 	// memset(shmDataAppInfo.card_no, 0x00, sizeof(shmDataAppInfo.card_no));
 
 	ituWidgetSetVisible(sMemberCardBtn, true);
-
 	ituWidgetSetVisible(sMemberNumBtn, true);
-
 	ituWidgetSetVisible(sMemberQrBtn, true);
 
 	TopHomeBtnVisible(true);
-	//TopBackBtnVisible(true);
 
-	TopSetTimer(CARD_WAIT_TIMEOUT, GotoStartLayer);	
-	//sleep(10);
-
-	//FtpIMGUpdate_func();
+	TopSetTimer(30, GotoStartLayer);	
 
     return true;
 }
@@ -110,7 +104,7 @@ bool AuthUserOnLeave(ITUWidget* widget, char* param)
 
     return true;
 }
-
+	
 bool AuthTypeSelectOnPress(ITUWidget* widget, char* param)
 {
 	ChannelType activeCh = CstGetUserActiveChannel();

@@ -384,5 +384,7 @@ int Check_Sampled_Time();
 bool Check_Meter_flg;
 bool Check_Sampled_flg;
 bool ServerCallError;
+int nConnectCheck;
+int nConnectResetCount;
 
 #endif  /*__TSCTCLIENT_H__*/
