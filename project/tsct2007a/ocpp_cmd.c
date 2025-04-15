@@ -369,9 +369,9 @@ void DataProcCmd_Boot(void)
 	{
 		if(!strcmp(Rx_Msg.Payload[i].property_name, "interval"))
 		{
-			CfgKeyVal[5].CfgKeyDataInt = 50;//30;//String2Integer(Rx_Msg.Payload[i].property_contants);
+			CfgKeyVal[5].CfgKeyDataInt = String2Integer(Rx_Msg.Payload[i].property_contants);
 			if(CfgKeyVal[5].CfgKeyDataInt==0)
-				CfgKeyVal[5].CfgKeyDataInt = 50;	// Default 10sec
+				CfgKeyVal[5].CfgKeyDataInt = 50;
 		}
 		else if(!strcmp(Rx_Msg.Payload[i].property_name, "status"))
 		{
@@ -396,14 +396,6 @@ void DataProcCmd_Boot(void)
 							bChargerCostCheck = 1;
 						}					
 					}
-					/*
-					if(theConfig.chargingstatus & (1<<(MAX_CONECTOR_ID+1))){
-						if(StopTsConfig.Connector_No == 0)
-							SetCpStatus(CP_STATUS_CODE_FNISH, 1);
-						else
-							SetCpStatus(CP_STATUS_CODE_FNISH, 2);
-					}
-					*/
 				}
 			}
 			// for Boot Notification Rejected, No Respond Any Message

@@ -94,6 +94,8 @@ struct timeval Errortv_top;
 struct timeval Nowtv_top;
 long NetErrorTime_top;
 bool NetError_Flg = true;
+long nowT_top = 0;
+long Errorminute_top = 0;
 
 //-----------------------------------------------------------------------
 // Function
@@ -396,10 +398,8 @@ static void* sTopMonitoringTaskFuntion(void* arg)
 
 static void* sTopStatusTaskFuntion(void* arg)
 {
-	//CtLogRed("[TopStatusTaskFuntion] start ");
-	bool golayer_flg;
-	long nowT_top = 0;
-	long Errorminute_top = 0;
+	CtLogRed("[TopStatusTaskFuntion] start ");
+	sleep(1);
 	while(1)
 	{
 		sleep(1);
@@ -409,6 +409,8 @@ static void* sTopStatusTaskFuntion(void* arg)
 		if(bConnect)
 		{
 			NetError_Flg = true;
+			nowT_top = 0;
+			Errorminute_top = 0;
 		}
 		
 		if((!bConnect || !TSCT_NetworkIsReady()) && NetError_Flg)
@@ -416,23 +418,19 @@ static void* sTopStatusTaskFuntion(void* arg)
 			NetError_Flg = false;
 			gettimeofday(&Errortv_top, NULL);
 			NetErrorTime_top = Errortv_top.tv_sec;
-			CtLogRed("NetError_Flg  : %d : %d", NetErrorTime_top, Errortv_top.tv_sec);
+			printf("NetError_Flg  : %d : %d \n", NetErrorTime_top, Errortv_top.tv_sec);
 		}
 
 		if(!NetError_Flg && theConfig.ConfirmSelect == USER_AUTH_NET)
 		{
 			gettimeofday(&Nowtv_top, NULL);
-			/*
-			nowT_top = (Nowtv_top.tv_sec % 3600) / 60;
-			Errorminute_top = (NetErrorTime_top % 3600) / 60;
-			CheckT = nowT_top - Errorminute_top;
-*/
+			
 			nowT_top = Nowtv_top.tv_sec - NetErrorTime_top;
 			Errorminute_top = (nowT_top % 3600) / 60;
 			
 			printf(" Top net error : %d: %d \n", nowT_top, Errorminute_top);
 
-			if(Errorminute_top > 5)
+			if(Errorminute_top > 5) //if(Errorminute_top > 1)
 			{
 				CtLogRed("NetError stop : %d", Errorminute_top);
 				if(shmDataAppInfo.app_order != APP_ORDER_CHARGING)
